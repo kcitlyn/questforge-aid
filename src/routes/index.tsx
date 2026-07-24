@@ -109,6 +109,22 @@ function toneClass(tone: string) {
 
 const DEFAULT_SITUATION = `The students defeated the Stormbristle Boar. Instead of accepting Artemis' blessing or treating the boar as sacred, they want to sell the tusks at the market, divide up the meat, and keep the profits. I need 2–3 possible story outcomes that respect their choice, create an interesting consequence, and keep the quest moving for ages 9–12.`;
 
+// A few one-click starters so a first-time GM (or a reviewer) can explore fast.
+const EXAMPLE_SCENARIOS: { label: string; text: string }[] = [
+  {
+    label: "Sell the sacred boar (demo)",
+    text: DEFAULT_SITUATION,
+  },
+  {
+    label: "Befriend the villain",
+    text: "The players were supposed to fight the sea-witch, but instead they want to befriend her and invite her to join the party. How do I keep the quest going for ages 8–10?",
+  },
+  {
+    label: "Ignore the quest entirely",
+    text: "The heroes don't care about the oracle's warning — they'd rather open a snack stand in the marketplace and get rich. I need options that respect that for ages 9–12.",
+  },
+];
+
 function Index() {
   const [situation, setSituation] = useState(DEFAULT_SITUATION);
   const [ageRange, setAgeRange] = useState("9-12");
@@ -122,10 +138,9 @@ function Index() {
   const [revising, setRevising] = useState<Record<string, string>>({});
   const [revisingBusy, setRevisingBusy] = useState<Set<string>>(new Set());
   const [log, setLog] = useState<LogEntry[]>([]);
+  const [copied, setCopied] = useState(false);
 
-
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function runGenerate() {
     if (!situation.trim()) return;
     setLoading(true);
     setError(null);
@@ -163,6 +178,41 @@ function Index() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    runGenerate();
+  }
+
+  // Cmd/Ctrl+Enter submits from the textarea — this tool is used live.
+  function onTextareaKeyDown(e: React.KeyboardEvent) {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      runGenerate();
+    }
+  }
+
+  function loadExample(text: string) {
+    setSituation(text);
+    setSuggestions(null);
+    setRawFallback(null);
+    setSafety(null);
+    setError(null);
+  }
+
+  async function copyNarration(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard can be blocked; silently ignore — not worth interrupting play.
+    }
+  }
+
+  function removeLogEntry(id: string) {
+    setLog((prev) => prev.filter((e) => e.id !== id));
   }
 
   function accept(outcome: StoryOutcome) {
@@ -292,10 +342,24 @@ function Index() {
                 id="situation"
                 value={situation}
                 onChange={(e) => setSituation(e.target.value)}
+                onKeyDown={onTextareaKeyDown}
                 rows={6}
                 placeholder="The party ignored the oracle and tried to ride the Minotaur..."
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring resize-y"
               />
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-muted-foreground">Try:</span>
+                {EXAMPLE_SCENARIOS.map((ex) => (
+                  <button
+                    key={ex.label}
+                    type="button"
+                    onClick={() => loadExample(ex.text)}
+                    className="rounded-full border border-input bg-background px-2.5 py-0.5 text-xs text-muted-foreground hover:bg-accent"
+                  >
+                    {ex.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -335,11 +399,29 @@ function Index() {
               >
                 {loading ? "Thinking…" : "Get suggestions"}
               </button>
+              <span className="text-xs text-muted-foreground hidden sm:inline">
+                ⌘/Ctrl + Enter
+              </span>
               {error && (
                 <span className="text-sm text-destructive">{error}</span>
               )}
             </div>
           </form>
+
+          {loading && !suggestions && (
+            <div className="space-y-3" aria-hidden>
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="rounded-lg border border-border bg-card p-4 space-y-2"
+                >
+                  <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+                  <div className="h-3 w-full rounded bg-muted animate-pulse" />
+                  <div className="h-3 w-4/5 rounded bg-muted animate-pulse" />
+                </div>
+              ))}
+            </div>
+          )}
 
           {rawFallback && (
             <Card label="Raw response (JSON parse failed)">
@@ -379,12 +461,22 @@ function Index() {
               )}
 
               <section className="space-y-3">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  Story outcomes
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    Story outcomes
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={runGenerate}
+                    disabled={loading}
+                    className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                  >
+                    {loading ? "Thinking…" : "↻ More ideas"}
+                  </button>
+                </div>
                 {visibleOutcomes.length === 0 && (
                   <p className="text-sm text-muted-foreground italic">
-                    All outcomes handled. Ask again for more ideas.
+                    All outcomes handled — tap “More ideas” for a fresh set.
                   </p>
                 )}
                 {visibleOutcomes.map((o) => {
@@ -480,11 +572,23 @@ function Index() {
                 })}
               </section>
 
-              <Card label="Narration to say aloud">
-                <p className="text-sm leading-relaxed italic whitespace-pre-wrap">
+              <div className="rounded-lg border border-border bg-card p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Narration to say aloud
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyNarration(suggestions.narration)}
+                    className="rounded-md border border-input bg-background px-2 py-0.5 text-xs font-medium hover:bg-accent"
+                  >
+                    {copied ? "Copied ✓" : "Copy"}
+                  </button>
+                </div>
+                <p className="text-base leading-relaxed italic whitespace-pre-wrap">
                   “{suggestions.narration}”
                 </p>
-              </Card>
+              </div>
 
               <Card label="Safety notes">
                 {suggestions.safety_notes.length === 0 ? (
@@ -502,12 +606,24 @@ function Index() {
         </div>
 
         <aside className="lg:sticky lg:top-6 h-fit rounded-lg border border-border bg-card p-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-            Session Log
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Session Log{log.length > 0 ? ` (${log.length})` : ""}
+            </h2>
+            {log.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setLog([])}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Clear
+              </button>
+            )}
+          </div>
           {log.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Accepted outcomes and consequences will appear here.
+              Accepted outcomes and their consequences collect here, so you can
+              call them back later in the session.
             </p>
           ) : (
             <ol className="space-y-3">
@@ -516,7 +632,19 @@ function Index() {
                   key={entry.id}
                   className="rounded-md border border-border p-3 space-y-1"
                 >
-                  <div className="text-xs text-muted-foreground">#{i + 1}</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-muted-foreground">
+                      #{i + 1}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeLogEntry(entry.id)}
+                      aria-label="Remove from log"
+                      className="text-xs text-muted-foreground hover:text-destructive"
+                    >
+                      ✕
+                    </button>
+                  </div>
                   <div className="text-sm">{entry.text}</div>
                   {entry.consequence_later && (
                     <div className="text-xs text-muted-foreground">
