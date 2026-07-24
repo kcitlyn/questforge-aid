@@ -601,6 +601,12 @@ function Index() {
                   </ul>
                 )}
               </Card>
+
+              <p className="text-sm text-muted-foreground text-center">
+                These are suggestions — you can <strong>accept</strong>,{" "}
+                <strong>revise</strong>, or <strong>ignore</strong> any of them.
+                You know your players best.
+              </p>
             </div>
           )}
         </div>

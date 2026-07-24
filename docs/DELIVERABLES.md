@@ -27,18 +27,28 @@ barrier: **confidence, not interest.**
 
 ## 3. Example output (what the prototype returns)
 
+**Safety reviewed ✓** — an independent second model pass checks every response
+before it's shown (see `SAFETY_PASS.md`).
+
+**Why these suggestions (co-pilot's thinking):** The players want to treat the
+boar as loot, not a sacred trophy — I'll honor the enterprise and let the world
+react in interesting ways, keeping the Poseidon quest alive.
+
 **Read of the moment:** The players want to treat the boar as loot, not a sacred
 trophy — enterprising heroes making a very human call.
 
-**Story outcomes**
-1. *(Playful)* The market loves the storm-charged tusks and a merchant pays
-   well — but the coins crackle with static and give little shocks. Word spreads
-   that these heroes deal in "lively" goods, and buyers start seeking them out.
-2. *(Intrigue)* Their new wealth draws attention: other hunters, hearing the
-   tusks sold for a fortune, begin tracking sacred creatures across the forest.
-   Artemis grows wary of the heroes — and a soft-spoken servant of Hades takes
-   an interest in them.
-3. *(Higher stakes)* Selling a creature sacred to Artemis stirs the goddess. She
+**You could ask the players:** "What are you hoping the money gets you?"
+
+**Story outcomes** *(each card has Accept / Revise / Ignore buttons)*
+1. *(Playful — 🎲 Charisma check)* The market loves the storm-charged tusks and a
+   merchant pays well — but the coins crackle with static and give little shocks.
+   Word spreads that these heroes deal in "lively" goods, and buyers start
+   seeking them out.
+2. *(Mystery — 🎲 Wisdom check)* Their new wealth draws attention: other hunters,
+   hearing the tusks sold for a fortune, begin tracking sacred creatures across
+   the forest. Artemis grows wary of the heroes — and a soft-spoken servant of
+   Hades takes an interest in them.
+3. *(High-stakes)* Selling a creature sacred to Artemis stirs the goddess. She
    doesn't punish them — she *tests* them: game grows scarce on the roads, and
    the heroes must show respect for the wild another way to earn her favor.
 
@@ -99,14 +109,16 @@ student names/PII; **concision** — a hard length cap keeps it usable live.)*
 
 ## 7. Reflection (3–5 sentences)
 
-With more time, I'd add a lightweight **age + intensity toggle** so the same
-situation can return gentler or more dramatic outcomes on demand, and let the GM
-**save a chosen consequence** so the tool can resurface it in a later scene —
-actually closing the loop on "a consequence that matters later." I'd add a
-**second safety pass** (a small moderation/classifier check on the output) rather
-than trusting the system prompt alone, and I'd **test with 2–3 real GMs** to tune
-length and vocabulary for live play. I'd also build a small **few-shot library of
-strong responses across genres** so the tool generalizes beyond Greek mythology,
-and instrument **thumbs-up/down** to learn which suggestions facilitators actually
-use. Finally, I'd make the reading level adjustable, since an 8-year-old table and
-a 14-year-old table need different narration.
+With more time, I'd **test with 2–3 real GMs** to tune length, vocabulary, and
+which suggestions actually get used live — the accept/revise/ignore buttons are
+already instrumented conceptually for that, so the next step is logging those
+choices as feedback. I'd **persist the Session Log across sessions** so a
+consequence accepted in week 1 can resurface in week 3, closing the loop on
+"a consequence that matters later" across a real multi-week program. I'd build an
+**evaluation suite** — a set of tricky scenarios with pass/fail criteria (the
+seeds are in `SAFETY_TEST_CASES.md`) — so prompt changes can be tested instead of
+eyeballed, and I'd expand the **few-shot example library across genres and
+cultures** so the tool generalizes beyond Greek mythology toward Quest Craft's
+250+-quest vision. Finally, I'd run the safety reviewer only when the generator
+self-flags uncertainty, cutting latency and cost roughly in half without losing
+the fail-safe.
