@@ -29,6 +29,22 @@ content, (2) student privacy — no child PII should enter or leave the system,
 pass output through the same Layer-2 child-safety review. Hardening one door
 and leaving two open is the classic mistake.
 
+### Input/output validation (assume both the user and the model are hostile)
+
+- **Input sanitization** (`validate.server.ts`): every user-controlled string is
+  stripped of control characters and zero-width/bidi-control characters (a
+  documented prompt-injection *hiding* technique — instructions invisible to a
+  human reviewer but read by the model), then length-capped.
+- **Server-side output schema validation**: the model's JSON is parsed and
+  validated ON THE SERVER before it ships to the browser. Unknown fields are
+  dropped (a manipulated model can't attach arbitrary payloads), enums (`tone`,
+  `dice_hook`) are coerced to an allowlist, lengths are capped, and outcome
+  count is capped at 3. The client only ever receives a vetted shape.
+- **Security regression tests** (`npm test`): 18 checks encoding the threat
+  model — hidden-char smuggling, hostile JSON fields, enum injection, oversized
+  payloads, garbage output. Run in CI-fashion before any prompt or endpoint
+  change.
+
 ### Web-app layer
 
 - **Security headers** (`public/_headers`): `X-Frame-Options: DENY`

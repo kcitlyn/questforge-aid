@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SYSTEM_PROMPT } from "@/lib/gm-copilot-prompt.server";
 import { reviewOutput } from "@/lib/safety-review.server";
 import { rateLimit } from "@/lib/rate-limit.server";
+import { sanitizeInput, validateSuggestions } from "@/lib/validate.server";
 
 interface Body {
   situation?: string;
@@ -22,19 +23,20 @@ export const Route = createFileRoute("/api/generate")({
         } catch {
           return new Response("Invalid request body", { status: 400 });
         }
-        const situation = (body.situation || "").trim();
+        // Guard against payload abuse (OWASP LLM04) and hidden-character
+        // injection: strip control/zero-width chars, cap length.
+        if ((body.situation || "").length > 2000) {
+          return new Response("Input too long (max 2000 chars)", { status: 400 });
+        }
+        const situation = sanitizeInput(body.situation || "", 2000);
         if (!situation) {
           return new Response("Situation is required", { status: 400 });
-        }
-        // Guard against payload abuse (OWASP LLM04: Model Denial of Service).
-        if (situation.length > 2000) {
-          return new Response("Input too long (max 2000 chars)", { status: 400 });
         }
         // Allowlist ageRange — it's forwarded to the model and the reviewer.
         const ageRange = ["8-10", "9-12", "11-14"].includes(body.ageRange || "")
           ? (body.ageRange as string)
           : "9-12";
-        const setting = (body.setting || "Ancient Greek myth").slice(0, 100);
+        const setting = sanitizeInput(body.setting || "Ancient Greek myth", 100) || "Ancient Greek myth";
 
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
@@ -66,13 +68,19 @@ export const Route = createFileRoute("/api/generate")({
         };
         const content = data.choices?.[0]?.message?.content ?? "";
 
+        // Schema-validate the model's output SERVER-SIDE: unknown fields are
+        // dropped, lengths capped, enums coerced (OWASP LLM02). The client
+        // only ever receives a vetted shape or a plain-text fallback.
+        const validated = validateSuggestions(content);
+
         // Layer 2: independent safety review of the generated output, run
         // server-side so nothing unreviewed ever reaches the browser.
         const safety = await reviewOutput(content, apiKey, ageRange);
 
-        // Return the raw content so the client can attempt parsing and gracefully
-        // fall back to showing it as text if the model returned non-JSON.
-        return Response.json({ raw: content, safety });
+        return Response.json({
+          raw: validated ? JSON.stringify(validated) : content,
+          safety,
+        });
       },
     },
   },

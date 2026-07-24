@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { reviewOutput } from "@/lib/safety-review.server";
 import { rateLimit } from "@/lib/rate-limit.server";
+import { sanitizeInput, validateCallback } from "@/lib/validate.server";
 
 // "Callback" — resurface a consequence the GM accepted earlier in the session.
 // This is what makes "a consequence that matters later" a live feature: one
@@ -39,7 +40,7 @@ export const Route = createFileRoute("/api/callback")({
         } catch {
           return new Response("Invalid request body", { status: 400 });
         }
-        const consequence = (body.consequence || body.entryText || "").trim().slice(0, 1000);
+        const consequence = sanitizeInput(body.consequence || body.entryText || "", 1000);
         if (!consequence) {
           return new Response("A saved consequence is required", { status: 400 });
         }
@@ -51,16 +52,16 @@ export const Route = createFileRoute("/api/callback")({
           : "9-12";
 
         const userMsg = `Age range: ${ageRange}
-Setting: ${(body.setting || "Ancient Greek myth").slice(0, 100)}
+Setting: ${sanitizeInput(body.setting || "Ancient Greek myth", 100)}
 
 Earlier in this session the GM accepted this outcome:
-${(body.entryText || "(not provided)").slice(0, 1000)}
+${sanitizeInput(body.entryText || "(not provided)", 1000)}
 
 With this consequence to pay off later:
 ${consequence}
 
 Current situation (may be empty):
-${(body.situation || "(not provided)").slice(0, 2000)}
+${sanitizeInput(body.situation || "(not provided)", 2000)}
 
 Bring the consequence back into the story now. Return JSON as specified.`;
 
@@ -88,10 +89,16 @@ Bring the consequence back into the story now. Return JSON as specified.`;
         };
         const content = data.choices?.[0]?.message?.content ?? "";
 
+        // Server-side schema validation of the model output (OWASP LLM02).
+        const validated = validateCallback(content);
+
         // Layer 2 safety review — no endpoint is a bypass.
         const safety = await reviewOutput(content, apiKey, ageRange);
 
-        return Response.json({ raw: content, safety });
+        return Response.json({
+          raw: validated ? JSON.stringify(validated) : content,
+          safety,
+        });
       },
     },
   },
