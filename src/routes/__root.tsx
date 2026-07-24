@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Quest Craft — GM Co-Pilot for Tabletop RPGs" },
+      { name: "description", content: "AI co-pilot for tabletop RPG Game Masters running games for kids ages 8–14. Get story outcomes, narration, and consequences on the fly." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Quest Craft — GM Co-Pilot for Tabletop RPGs" },
+      { property: "og:description", content: "AI co-pilot for tabletop RPG Game Masters running games for kids ages 8–14. Get story outcomes, narration, and consequences on the fly." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Quest Craft — GM Co-Pilot for Tabletop RPGs" },
+      { name: "twitter:description", content: "AI co-pilot for tabletop RPG Game Masters running games for kids ages 8–14. Get story outcomes, narration, and consequences on the fly." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ab001360-dc13-40f3-912e-7b14b1f97a98/id-preview-34765080--09163004-efc1-4384-a11f-efd68d0d4f2a.lovable.app-1784865840730.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ab001360-dc13-40f3-912e-7b14b1f97a98/id-preview-34765080--09163004-efc1-4384-a11f-efd68d0d4f2a.lovable.app-1784865840730.png" },
     ],
     links: [
       {

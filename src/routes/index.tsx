@@ -35,11 +35,11 @@ export const Route = createFileRoute("/")({
         content:
           "AI co-pilot for tabletop RPG Game Masters running games for kids ages 8–14. Get story outcomes, narration, and consequences on the fly.",
       },
-      { property: "og:title", content: "Quest Craft — GM Co-Pilot" },
+      { property: "og:title", content: "Quest Craft — GM Co-Pilot for Tabletop RPGs" },
       {
         property: "og:description",
         content:
-          "AI suggestions for GMs when young players make unexpected choices.",
+          "AI co-pilot for tabletop RPG Game Masters running games for kids ages 8–14. Get story outcomes, narration, and consequences on the fly.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
