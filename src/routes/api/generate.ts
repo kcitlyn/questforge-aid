@@ -1,27 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-const SYSTEM_PROMPT = `You are a Game Master's co-pilot for tabletop RPG sessions with young players (ages 8-14). The GM will describe an unexpected player choice or situation they need help with. Respond with age-appropriate, imaginative, and safe suggestions.
-
-You MUST respond ONLY as JSON in this exact shape (no markdown, no prose outside JSON):
-{
-  "read_of_moment": "string — a short paragraph reading what's happening at the table",
-  "story_outcomes": [
-    {
-      "tone": "playful | intrigue | high-stakes",
-      "text": "string — 1-3 sentences describing what could happen in the fiction",
-      "consequence_later": "string — a consequence that matters later in the session or campaign"
-    }
-  ],
-  "narration": "string — a short piece of narration the GM can read aloud",
-  "safety_notes": ["string", "string"]
-}
-
-Rules:
-- Provide 2 or 3 story_outcomes, each with a different tone from the allowed set.
-- Keep language warm, vivid, and age-appropriate for the specified age range.
-- Avoid graphic violence, romance, or scary content beyond age norms.
-- Honor the setting.
-- Return ONLY the JSON object.`;
+import { SYSTEM_PROMPT } from "@/lib/gm-copilot-prompt.server";
 
 interface Body {
   situation?: string;
