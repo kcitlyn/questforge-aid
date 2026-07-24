@@ -78,6 +78,7 @@ interface Callback {
   narration: string;
   delivery_hint: string;
   hook: string;
+  flagged?: boolean;
 }
 
 interface SafetyVerdict {
@@ -409,7 +410,10 @@ function Index() {
         }),
       });
       if (!res.ok) throw new Error(await res.text());
-      const { raw } = (await res.json()) as { raw: string };
+      const { raw, safety: verdict } = (await res.json()) as {
+        raw: string;
+        safety?: SafetyVerdict;
+      };
       let parsed: Record<string, unknown> | null = null;
       try {
         parsed = JSON.parse(raw) as Record<string, unknown>;
@@ -426,6 +430,10 @@ function Index() {
             ? parsed.delivery_hint
             : "",
         hook: parsed && typeof parsed.hook === "string" ? parsed.hook : "",
+        // Flag if the independent review found a real concern (or couldn't run).
+        flagged: verdict
+          ? !verdict.reviewed || verdict.severity !== "none"
+          : false,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Callback failed");
@@ -486,7 +494,13 @@ function Index() {
         }),
       });
       if (!res.ok) throw new Error(await res.text());
-      const { raw } = (await res.json()) as { raw: string };
+      const { raw, safety: verdict } = (await res.json()) as {
+        raw: string;
+        safety?: SafetyVerdict;
+      };
+      // A revision is read aloud just like a first suggestion — surface its
+      // independent safety verdict too, so revise is never a safety blind spot.
+      if (verdict) setSafety(verdict);
       let parsed: Record<string, unknown> | null = null;
       try {
         parsed = JSON.parse(raw) as Record<string, unknown>;
@@ -1067,6 +1081,12 @@ function Index() {
               <div className="text-xs font-semibold uppercase tracking-wide text-gold">
                 Bring it back
               </div>
+              {callback.flagged && (
+                <p className="text-xs text-destructive">
+                  A second safety check flagged this — please read it over before
+                  using.
+                </p>
+              )}
               <p className="text-sm italic leading-relaxed text-card-foreground">
                 “{callback.narration}”
               </p>
