@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SYSTEM_PROMPT } from "@/lib/gm-copilot-prompt.server";
 import { reviewOutput } from "@/lib/safety-review.server";
+import { rateLimit } from "@/lib/rate-limit.server";
 
 interface Body {
   situation?: string;
@@ -12,7 +13,15 @@ export const Route = createFileRoute("/api/generate")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const body = (await request.json()) as Body;
+        const limited = rateLimit(request);
+        if (limited) return limited;
+
+        let body: Body;
+        try {
+          body = (await request.json()) as Body;
+        } catch {
+          return new Response("Invalid request body", { status: 400 });
+        }
         const situation = (body.situation || "").trim();
         if (!situation) {
           return new Response("Situation is required", { status: 400 });
@@ -21,7 +30,10 @@ export const Route = createFileRoute("/api/generate")({
         if (situation.length > 2000) {
           return new Response("Input too long (max 2000 chars)", { status: 400 });
         }
-        const ageRange = body.ageRange || "9-12";
+        // Allowlist ageRange — it's forwarded to the model and the reviewer.
+        const ageRange = ["8-10", "9-12", "11-14"].includes(body.ageRange || "")
+          ? (body.ageRange as string)
+          : "9-12";
         const setting = (body.setting || "Ancient Greek myth").slice(0, 100);
 
         const apiKey = process.env.LOVABLE_API_KEY;

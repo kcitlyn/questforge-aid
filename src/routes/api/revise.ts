@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { reviewOutput } from "@/lib/safety-review.server";
+import { rateLimit } from "@/lib/rate-limit.server";
 
 const SYSTEM_PROMPT = `You revise a single Game Master story outcome for a tabletop RPG with young players (ages 8-14). The GM will give you the original situation, the outcome they want revised, and their revision notes. Produce ONE improved outcome.
 
@@ -25,15 +26,26 @@ export const Route = createFileRoute("/api/revise")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const body = (await request.json()) as Body;
+        const limited = rateLimit(request);
+        if (limited) return limited;
+
+        let body: Body;
+        try {
+          body = (await request.json()) as Body;
+        } catch {
+          return new Response("Invalid request body", { status: 400 });
+        }
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
-        // Input length guards (OWASP LLM04).
+        // Input length guards (OWASP LLM04) + ageRange allowlist.
         const notes = (body.revisionNotes || "(make it better)").slice(0, 1000);
         const situationText = (body.situation || "").slice(0, 2000);
+        const ageRange = ["8-10", "9-12", "11-14"].includes(body.ageRange || "")
+          ? (body.ageRange as string)
+          : "9-12";
 
-        const userMsg = `Age range: ${body.ageRange || "9-12"}
+        const userMsg = `Age range: ${ageRange}
 Setting: ${(body.setting || "Ancient Greek myth").slice(0, 100)}
 
 Original situation:
@@ -74,7 +86,7 @@ Return JSON as specified.`;
         const content = data.choices?.[0]?.message?.content ?? "";
 
         // Layer 2 safety review — same as generate, so revise isn't a bypass.
-        const safety = await reviewOutput(content, apiKey, body.ageRange || "9-12");
+        const safety = await reviewOutput(content, apiKey, ageRange);
 
         return Response.json({ raw: content, safety });
       },

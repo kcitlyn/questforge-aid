@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { reviewOutput } from "@/lib/safety-review.server";
+import { rateLimit } from "@/lib/rate-limit.server";
 
 // "Callback" — resurface a consequence the GM accepted earlier in the session.
 // This is what makes "a consequence that matters later" a live feature: one
@@ -29,7 +30,15 @@ export const Route = createFileRoute("/api/callback")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const body = (await request.json()) as Body;
+        const limited = rateLimit(request);
+        if (limited) return limited;
+
+        let body: Body;
+        try {
+          body = (await request.json()) as Body;
+        } catch {
+          return new Response("Invalid request body", { status: 400 });
+        }
         const consequence = (body.consequence || body.entryText || "").trim().slice(0, 1000);
         if (!consequence) {
           return new Response("A saved consequence is required", { status: 400 });
@@ -37,7 +46,11 @@ export const Route = createFileRoute("/api/callback")({
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
-        const userMsg = `Age range: ${body.ageRange || "9-12"}
+        const ageRange = ["8-10", "9-12", "11-14"].includes(body.ageRange || "")
+          ? (body.ageRange as string)
+          : "9-12";
+
+        const userMsg = `Age range: ${ageRange}
 Setting: ${(body.setting || "Ancient Greek myth").slice(0, 100)}
 
 Earlier in this session the GM accepted this outcome:
@@ -76,7 +89,7 @@ Bring the consequence back into the story now. Return JSON as specified.`;
         const content = data.choices?.[0]?.message?.content ?? "";
 
         // Layer 2 safety review — no endpoint is a bypass.
-        const safety = await reviewOutput(content, apiKey, body.ageRange || "9-12");
+        const safety = await reviewOutput(content, apiKey, ageRange);
 
         return Response.json({ raw: content, safety });
       },
