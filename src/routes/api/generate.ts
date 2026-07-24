@@ -8,6 +8,7 @@ interface Body {
   situation?: string;
   ageRange?: string;
   setting?: string;
+  direction?: string;
 }
 
 export const Route = createFileRoute("/api/generate")({
@@ -37,11 +38,19 @@ export const Route = createFileRoute("/api/generate")({
           ? (body.ageRange as string)
           : "9-12";
         const setting = sanitizeInput(body.setting || "Ancient Greek myth", 100) || "Ancient Greek myth";
+        // Optional free-text steer ("make it sillier", "bring back the aunt").
+        // Sanitized + capped like any other input; the system prompt treats it
+        // as story material and the Layer-2 review still vets the result, so it
+        // can't be used to steer past the age/safety guardrails.
+        const direction = sanitizeInput(body.direction || "", 300);
 
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
-        const userMsg = `Age range: ${ageRange}\nSetting: ${setting}\n\nWhat just happened / what I need help with:\n${situation}\n\nReturn JSON as specified.`;
+        const directionLine = direction
+          ? `\n\nGM's requested direction/vibe for these suggestions: ${direction}`
+          : "";
+        const userMsg = `Age range: ${ageRange}\nSetting: ${setting}\n\nWhat just happened / what I need help with:\n${situation}${directionLine}\n\nReturn JSON as specified.`;
 
         const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",

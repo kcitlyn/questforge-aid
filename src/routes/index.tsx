@@ -139,18 +139,35 @@ function toneClass(tone: string) {
   }
 }
 
-// Colored left edge so the three options read as distinct paths at a glance.
+// Colored left edge + faint matching wash so the three options read as
+// distinct paths at a glance — lively without shouting.
 function toneBorder(tone: string) {
   switch (tone) {
     case "playful":
-      return "border-l-4 border-l-emerald-400";
+      return "border-l-4 border-l-emerald-400 bg-gradient-to-r from-emerald-50/60 to-card dark:from-emerald-950/30";
     case "mystery":
     case "intrigue":
-      return "border-l-4 border-l-indigo-400";
+      return "border-l-4 border-l-indigo-400 bg-gradient-to-r from-indigo-50/60 to-card dark:from-indigo-950/30";
     case "high-stakes":
-      return "border-l-4 border-l-rose-400";
+      return "border-l-4 border-l-rose-400 bg-gradient-to-r from-rose-50/60 to-card dark:from-rose-950/30";
     default:
       return "border-l-4 border-l-border";
+  }
+}
+
+// A short, playful label per tone — a wink for the GM about what kind of turn
+// this is, without adding UI clutter.
+function toneLabel(tone: string) {
+  switch (tone) {
+    case "playful":
+      return "the fun path";
+    case "mystery":
+    case "intrigue":
+      return "the curious path";
+    case "high-stakes":
+      return "the bold path";
+    default:
+      return "";
   }
 }
 
@@ -185,6 +202,17 @@ const PLACEHOLDERS = [
 function pickPlaceholder() {
   return PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)];
 }
+
+// One-tap quick-fills for the free-text "direction" box. They're just starting
+// phrases — the GM can edit, combine, or ignore them and type anything.
+const VIBE_QUICKFILLS = [
+  "Make it sillier",
+  "A little spookier (mysterious, not scary)",
+  "More heroic and triumphant",
+  "Add a surprising twist",
+  "Keep each outcome short",
+  "Give the players a clear choice to make",
+] as const;
 
 const DEFAULT_SITUATION = `The students defeated the Stormbristle Boar. Instead of accepting Artemis' blessing or treating the boar as sacred, they want to sell the tusks at the market, divide up the meat, and keep the profits. I need 2–3 possible story outcomes that respect their choice, create an interesting consequence, and keep the quest moving for ages 9–12.`;
 
@@ -234,6 +262,7 @@ function Index() {
   const [muted, setMuted] = useState(false);
   const [music, setMusic] = useState(false);
   const [placeholder, setPlaceholder] = useState(PLACEHOLDERS[0]);
+  const [direction, setDirection] = useState("");
 
   // Restore audio prefs (localStorage isn't available during SSR).
   useEffect(() => {
@@ -262,6 +291,18 @@ function Index() {
     setMusicOn(next);
   }
 
+  // Quick-fill chips append their phrase to whatever the GM has already typed,
+  // so they compose instead of replacing free text.
+  function addQuickfill(phrase: string) {
+    sfx.click();
+    setDirection((prev) => {
+      const t = prev.trim();
+      if (!t) return phrase;
+      if (t.toLowerCase().includes(phrase.toLowerCase())) return t; // no dupes
+      return `${t}. ${phrase}`;
+    });
+  }
+
   async function runGenerate() {
     if (!situation.trim()) return;
     sfx.send();
@@ -274,7 +315,12 @@ function Index() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ situation, ageRange, setting }),
+        body: JSON.stringify({
+          situation,
+          ageRange,
+          setting,
+          direction: direction.trim(),
+        }),
       });
       if (!res.ok) throw new Error(await res.text());
       const { raw, safety: verdict } = (await res.json()) as {
@@ -319,6 +365,7 @@ function Index() {
   }
 
   function loadExample(text: string) {
+    sfx.click();
     setSituation(text);
     setSuggestions(null);
     setRawFallback(null);
@@ -327,6 +374,7 @@ function Index() {
   }
 
   async function copyNarration(text: string) {
+    sfx.click();
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -337,6 +385,7 @@ function Index() {
   }
 
   function removeLogEntry(id: string) {
+    sfx.ignore();
     setLog((prev) => prev.filter((e) => e.id !== id));
   }
 
@@ -402,6 +451,7 @@ function Index() {
   }
 
   function startRevise(o: StoryOutcome) {
+    sfx.click();
     setRevising((prev) => ({ ...prev, [o.id]: o.text }));
   }
 
@@ -414,6 +464,7 @@ function Index() {
   }
 
   async function submitRevise(o: StoryOutcome) {
+    sfx.send();
     const notes = revising[o.id] ?? "";
     setRevisingBusy((prev) => new Set(prev).add(o.id));
     try {
@@ -562,6 +613,50 @@ function Index() {
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <label
+                htmlFor="direction"
+                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
+              >
+                <MasksIcon className="h-3.5 w-3.5" /> Steer the vibe{" "}
+                <span className="font-normal">
+                  (optional — tell it what you want, or tap a starter)
+                </span>
+              </label>
+              <input
+                id="direction"
+                value={direction}
+                onChange={(e) => setDirection(e.target.value.slice(0, 300))}
+                maxLength={300}
+                placeholder="e.g. make it funnier, and have the sea-witch turn out to be their long-lost aunt"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                {VIBE_QUICKFILLS.map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => addQuickfill(v)}
+                    className="rounded-full border border-input bg-background px-2.5 py-0.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                  >
+                    + {v}
+                  </button>
+                ))}
+                {direction && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sfx.ignore();
+                      setDirection("");
+                    }}
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <label htmlFor="age" className="text-sm font-medium">
@@ -595,9 +690,15 @@ function Index() {
               <button
                 type="submit"
                 disabled={loading || !situation.trim()}
-                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
               >
-                {loading ? loadingLine : "Get suggestions"}
+                {loading ? (
+                  loadingLine
+                ) : (
+                  <>
+                    <D20Icon className="h-4 w-4" /> Get suggestions
+                  </>
+                )}
               </button>
               <span className="text-xs text-muted-foreground hidden sm:inline">
                 ⌘/Ctrl + Enter
@@ -713,6 +814,11 @@ function Index() {
                         >
                           {toneIcon(o.tone)} {o.tone}
                         </span>
+                        {toneLabel(o.tone) && (
+                          <span className="text-xs italic text-muted-foreground">
+                            {toneLabel(o.tone)}
+                          </span>
+                        )}
                         {o.dice_hook && (
                           <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">
                             <D20Icon className="h-3.5 w-3.5" /> {o.dice_hook} check
@@ -857,7 +963,10 @@ function Index() {
             {log.length > 0 && (
               <button
                 type="button"
-                onClick={() => setLog([])}
+                onClick={() => {
+                  sfx.ignore();
+                  setLog([]);
+                }}
                 className="text-xs text-muted-foreground hover:text-foreground"
               >
                 Clear
@@ -938,7 +1047,10 @@ function Index() {
               )}
               <button
                 type="button"
-                onClick={() => setCallback(null)}
+                onClick={() => {
+                  sfx.ignore();
+                  setCallback(null);
+                }}
                 className="text-xs text-indigo-900/70 hover:text-indigo-900 dark:text-indigo-200/70 dark:hover:text-indigo-200"
               >
                 Dismiss
