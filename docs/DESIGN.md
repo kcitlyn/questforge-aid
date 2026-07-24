@@ -29,7 +29,7 @@ fails *safe* (softens/withholds, never fails open) and still returns control to
 the GM. This is the core AI-engineering claim of the submission.
 
 **4. Tone-diverse outcomes.**
-The prompt forces 2–3 outcomes with *different* tones (playful / intrigue /
+The prompt forces 2–3 outcomes with *different* tones (playful / mystery /
 high-stakes) so the GM gets genuine options, not one idea reworded.
 
 **5. Age + setting controls.**

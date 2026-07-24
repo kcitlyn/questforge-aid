@@ -27,8 +27,9 @@ barrier: **confidence, not interest.**
 
 ## 3. Example output (what the prototype returns)
 
-**Safety reviewed ✓** — an independent second model pass checks every response
-before it's shown (see `SAFETY_PASS.md`).
+**Safety reviewed** — an independent second model pass checks every response
+before it's shown (see `SAFETY_PASS.md`); a serious flag holds the content back
+until the GM chooses to reveal it.
 
 **Why these suggestions (co-pilot's thinking):** The players want to treat the
 boar as loot, not a sacred trophy — I'll honor the enterprise and let the world
@@ -39,29 +40,35 @@ trophy — enterprising heroes making a very human call.
 
 **You could ask the players:** "What are you hoping the money gets you?"
 
-**Story outcomes** *(each card has Accept / Revise / Ignore buttons)*
-1. *(Playful — 🎲 Charisma check)* The market loves the storm-charged tusks and a
+**Story outcomes** *(each card has Use this / Revise / Ignore buttons; each
+carries its own "matters later" hook)*
+1. *(Playful — Charisma check)* The market loves the storm-charged tusks and a
    merchant pays well — but the coins crackle with static and give little shocks.
    Word spreads that these heroes deal in "lively" goods, and buyers start
    seeking them out.
-2. *(Mystery — 🎲 Wisdom check)* Their new wealth draws attention: other hunters,
+   — *Later:* those buyers come looking for more "lively" goods.
+2. *(Mystery — Wisdom check)* Their new wealth draws attention: other hunters,
    hearing the tusks sold for a fortune, begin tracking sacred creatures across
    the forest. Artemis grows wary of the heroes — and a soft-spoken servant of
    Hades takes an interest in them.
+   — *Later:* the servant of Hades resurfaces with an offer.
 3. *(High-stakes)* Selling a creature sacred to Artemis stirs the goddess. She
    doesn't punish them — she *tests* them: game grows scarce on the roads, and
    the heroes must show respect for the wild another way to earn her favor.
+   — *Later:* Artemis's test comes due before they can leave the region.
 
 **Narration you could say aloud:** "The tusks fetch a fine price — merchants
 haggle eagerly over the lightning-veined ivory. But as the coins drop into your
 palms, a distant thunder rolls, and you feel unseen eyes watching from the
 treeline. The hunt, it seems, remembers."
 
-**🎭 Delivery hint:** *(cheerful market bustle, then slow down for the thunder)*
+**Delivery hint:** *(cheerful market bustle, then slow down for the thunder)*
 
-**A consequence that matters later:** Either way, the heroes still need to weaken
-Poseidon's curse — and they've now spent the favor they came here to earn, so
-they'll need a new path (back to Clio, or through the Priest of Hades).
+**A consequence that matters later:** beyond each outcome's own hook (above), the
+heroes still need to weaken Poseidon's curse — and they've now spent the favor
+they came here to earn, so they'll need a new path (back to Clio, or through the
+Priest of Hades). Accepting any outcome writes its hook to the Session Log, where
+one click weaves it back into a later scene.
 
 **You're in control:** These are options — accept, mix, or ignore any of them.
 You can also just ask the players, "What are you hoping the money gets you?" and
@@ -77,9 +84,10 @@ so player agency stays intact.
 
 ## 4. Prompt / system instructions
 
-See `SYSTEM_PROMPT.md`. Key design choices to mention in the submission:
+See `SYSTEM_PROMPT_JSON.md` (schema + rationale); the authoritative prompt lives
+in `src/lib/gm-copilot-prompt.server.ts`. Key design choices to mention:
 - **Fixed output order** so a stressed GM always knows where to look.
-- **Tone variety across outcomes** (playful / intrigue / high-stakes) so the GM
+- **Tone variety across outcomes** (playful / mystery / high-stakes) so the GM
   gets a real choice, not three flavors of the same idea.
 - **Every response ends with an "accept / revise / ignore" reminder + a question
   the GM can ask players** — the human-in-the-loop principle, enforced in the

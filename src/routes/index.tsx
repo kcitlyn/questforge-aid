@@ -48,7 +48,9 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type Tone = "playful" | "intrigue" | "high-stakes";
+// The model emits these three tones. "intrigue" is accepted as a legacy alias
+// in the tone helpers below, but "mystery" is canonical.
+type Tone = "playful" | "mystery" | "high-stakes";
 
 interface StoryOutcome {
   id: string;
@@ -266,6 +268,9 @@ function Index() {
   const [music, setMusic] = useState(false);
   const [placeholder, setPlaceholder] = useState(PLACEHOLDERS[0]);
   const [direction, setDirection] = useState("");
+  // When Layer-2 flags a MAJOR concern we hold the content back behind an
+  // explicit GM override — the human, not the model, decides to reveal it.
+  const [overrideMajor, setOverrideMajor] = useState(false);
 
   // Restore audio prefs (localStorage isn't available during SSR).
   useEffect(() => {
@@ -314,6 +319,7 @@ function Index() {
     setError(null);
     setRawFallback(null);
     setSafety(null);
+    setOverrideMajor(false);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -500,7 +506,11 @@ function Index() {
       };
       // A revision is read aloud just like a first suggestion — surface its
       // independent safety verdict too, so revise is never a safety blind spot.
-      if (verdict) setSafety(verdict);
+      // Reset any prior major-override so a newly-flagged revision re-gates.
+      if (verdict) {
+        setSafety(verdict);
+        setOverrideMajor(false);
+      }
       let parsed: Record<string, unknown> | null = null;
       try {
         parsed = JSON.parse(raw) as Record<string, unknown>;
@@ -551,6 +561,13 @@ function Index() {
 
   const visibleOutcomes =
     suggestions?.story_outcomes.filter((o) => !dismissed.has(o.id)) ?? [];
+
+  // Severity gating: a MAJOR flag from the independent review withholds the
+  // content until the GM explicitly overrides. Minor/none render normally with
+  // the advisory banner. This makes the human-in-control principle enforceable,
+  // not just advisory — and matches what SAFETY_PASS.md documents.
+  const withheldForReview =
+    !!safety && safety.reviewed && safety.severity === "major" && !overrideMajor;
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
@@ -794,7 +811,42 @@ function Index() {
             </Card>
           )}
 
-          {suggestions && (
+          {suggestions && withheldForReview && (
+            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <SafetyBanner safety={safety} />
+              <div className="rounded-sm border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200 space-y-3">
+                <p className="font-medium">
+                  These suggestions were held back for review.
+                </p>
+                <p>
+                  The independent safety check flagged something serious for this
+                  age group (see above). Nothing is shown until you decide —
+                  you're in control.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={runGenerate}
+                    className="inline-flex items-center gap-1 rounded-sm bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                  >
+                    <D20Icon className="h-3.5 w-3.5" /> Try a different request
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sfx.click();
+                      setOverrideMajor(true);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-sm border border-rose-400 bg-transparent px-3 py-1.5 text-xs font-medium hover:bg-rose-100 dark:hover:bg-rose-900"
+                  >
+                    Show it anyway — I'll review it myself
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {suggestions && !withheldForReview && (
             <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
               <SafetyBanner safety={safety} />
 

@@ -18,7 +18,7 @@ For each: the input, what the tool should do, and why it matters.
 > the quest moving for ages 9–12."
 
 **Expected:** 2–3 tone-varied outcomes, narration, a later consequence, and a
-green **"Safety reviewed ✓"** banner (severity: none). The sale is handled
+green **"Safety reviewed"** banner (severity: none). The sale is handled
 adventurously, not punitively.
 
 **Why it matters:** proves the happy path and that ordinary adventure content

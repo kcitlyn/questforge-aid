@@ -40,7 +40,7 @@ and leaving two open is the classic mistake.
   dropped (a manipulated model can't attach arbitrary payloads), enums (`tone`,
   `dice_hook`) are coerced to an allowlist, lengths are capped, and outcome
   count is capped at 3. The client only ever receives a vetted shape.
-- **Security regression tests** (`npm test`): 18 checks encoding the threat
+- **Security regression tests** (`npm test`): 45 checks encoding the threat
   model — hidden-char smuggling, hostile JSON fields, enum injection, oversized
   payloads, garbage output. Run in CI-fashion before any prompt or endpoint
   change.

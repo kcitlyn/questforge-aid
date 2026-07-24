@@ -41,21 +41,28 @@ Send the generated JSON to a second call with this system prompt:
 > }
 > ```
 
-### App behavior on the result
-- `safe: true` → render normally, show a small **"Safety reviewed ✓"** badge.
-- `severity: minor` → render the `suggested_fix` version, show a subtle note:
-  "Adjusted for age-appropriateness."
-- `severity: major` → do **not** show the content; show: "A suggestion was held
-  back for review — try rephrasing your request." Keep the GM in control by
-  letting them retry.
+### App behavior on the result (as implemented)
+- `severity: none` → render normally, show a small **"Safety reviewed"** badge.
+- `severity: minor` → render the suggestions with an advisory banner that lists
+  the issue and offers the reviewer's softer rewrite. The GM decides whether to
+  use it — we don't silently swap the text out from under them.
+- `severity: major` → **withhold the content.** The suggestions are held back
+  behind an explicit choice: "Try a different request" or "Show it anyway — I'll
+  review it myself." Nothing appears until the GM decides. (See `withheldForReview`
+  in `src/routes/index.tsx`.)
+- **review couldn't run** (network/parse error) → fail safe: don't claim the
+  content is verified; tell the GM the check couldn't run and to use their own
+  judgment (`REVIEW_UNAVAILABLE` in `safety-review.server.ts`).
 
 ### Why this is defensible (say this in your writeup)
 - **Independence:** the reviewer doesn't share the generator's context, so it
   catches things the generator rationalized past.
-- **Fail-safe default:** on parse error or timeout, treat as `minor` and show the
-  conservative version — never fail *open* toward unsafe content.
-- **Human still in control:** we soften or withhold, then hand back to the GM —
-  we don't silently rewrite the story or block them entirely.
+- **Fail-safe default:** on parse error or timeout we don't claim the content is
+  verified safe — we tell the GM the check couldn't run and to use their own
+  judgment. Never fail *open* toward content we've silently blessed.
+- **Human still in control:** on a major flag we withhold and hand the decision
+  back to the GM (retry, or reveal-and-review). We surface a softer version for
+  minor flags but never silently rewrite the story.
 - **Cost/latency tradeoff:** it doubles calls; acceptable because the payload is
   tiny and child safety outranks a few hundred ms. (A future version could run
   Layer 2 only when Layer 1 self-flags uncertainty.)

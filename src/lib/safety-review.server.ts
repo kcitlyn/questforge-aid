@@ -14,9 +14,9 @@
 // (age band), calibration examples, and a bare parseable verdict.
 //
 // Known tradeoff, deliberate: best practice prefers a DIFFERENT judge model
-// than the generator (self-grading bias). We reuse the gateway's default model
-// because an unverified model ID would make every review fail; in production
-// we'd move the judge to a separate, cheaper model. Documented in SAFETY_PASS.md.
+// than the generator (self-grading bias). For the prototype the reviewer runs on
+// the same model as the generator to keep setup zero-config; in production we'd
+// move the judge to a separate, cheaper model. Documented in SAFETY_PASS.md.
 
 export const SAFETY_REVIEW_PROMPT = `You are a child-safety reviewer. Judge ONE question: is this suggestion appropriate to show a facilitator running a game for the given age band?
 
