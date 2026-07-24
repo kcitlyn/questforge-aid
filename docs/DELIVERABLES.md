@@ -57,6 +57,8 @@ haggle eagerly over the lightning-veined ivory. But as the coins drop into your
 palms, a distant thunder rolls, and you feel unseen eyes watching from the
 treeline. The hunt, it seems, remembers."
 
+**🎭 Delivery hint:** *(cheerful market bustle, then slow down for the thunder)*
+
 **A consequence that matters later:** Either way, the heroes still need to weaken
 Poseidon's curse — and they've now spent the favor they came here to earn, so
 they'll need a new path (back to Clio, or through the Priest of Hades).

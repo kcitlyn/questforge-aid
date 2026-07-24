@@ -1,29 +1,49 @@
-# Welcome to your Lovable project
+# Quest Craft — GM Co-Pilot
 
-This project was built with [Lovable](https://lovable.dev).
+An AI assistant that helps a tabletop-RPG **Game Master** (often an educator
+with zero RPG experience) respond when young players (ages 8–14) make an
+**unexpected choice** during a live session.
 
-## Build with Lovable
+Built for the Quest Craft AI Intern candidate exercise. **Live demo:** _[Lovable link]_
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+## What it does
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+Describe the moment → get back, in seconds:
+- **2–3 story outcomes** in distinct tones (😄 playful / 🔮 mystery / ⚡ high-stakes),
+  each with a dice hook tied to Quest Craft's Strength/Wisdom/Charisma mechanic
+- **Narration to read aloud**, with a 🎭 delivery hint (voice, pace, pause)
+- **A consequence that matters later** — accept it and it joins the 📜 Session Log,
+  where one click weaves it back into a future scene
+- **A clarifying question** to hand the decision back to the players
 
-## Development
+Every suggestion has **Use this / Revise / Ignore** — the human GM always decides.
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Safety design (the core of it)
+
+- **Two-layer safety:** generation under a guardrailed prompt, then an
+  **independent child-safety review** of every output before it's shown — on all
+  endpoints, failing safe when the review can't run. See `docs/SAFETY_PASS.md`.
+- **Hostile-input hardening:** control/zero-width character stripping, length
+  caps, rate limiting, server-side output schema validation. See `docs/SECURITY.md`.
+- **45 security & robustness tests:** `npm test`.
+
+## Repo map
+
+| Path | What it is |
+|---|---|
+| `src/lib/gm-copilot-prompt.server.ts` | The generation system prompt (research-based; see `docs/PROMPT_RESEARCH.md`) |
+| `src/lib/safety-review.server.ts` | Layer-2 child-safety reviewer (calibrated LLM-as-judge) |
+| `src/lib/validate.server.ts` + `.test.mjs` | Input sanitization, output schema validation, test suite |
+| `src/routes/api/` | Server-side endpoints: generate, revise, callback |
+| `docs/` | Deliverables, design tradeoffs, security review, safety test cases |
+
+## Run locally
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
 npm i
-npm run dev
+npm run dev    # needs LOVABLE_API_KEY in env for AI calls
+npm test       # security/robustness suite, no key needed
 ```
 
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+Built with TanStack Start, React, TypeScript, Tailwind. Scaffolded in Lovable,
+developed in Cursor, synced via GitHub.
