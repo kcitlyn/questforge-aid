@@ -130,6 +130,21 @@ function toneEmoji(tone: string) {
   }
 }
 
+// Colored left edge so the three options read as distinct paths at a glance.
+function toneBorder(tone: string) {
+  switch (tone) {
+    case "playful":
+      return "border-l-4 border-l-emerald-400";
+    case "mystery":
+    case "intrigue":
+      return "border-l-4 border-l-indigo-400";
+    case "high-stakes":
+      return "border-l-4 border-l-rose-400";
+    default:
+      return "border-l-4 border-l-border";
+  }
+}
+
 // Themed loading lines — GMs see this constantly; make it part of the world.
 const LOADING_LINES = [
   "Consulting the oracle…",
@@ -498,6 +513,20 @@ function Index() {
             </div>
           </form>
 
+          {!loading && !suggestions && !rawFallback && (
+            <div className="rounded-lg border border-dashed border-border p-6 text-center space-y-2">
+              <div className="text-3xl">🎲</div>
+              <p className="text-sm font-medium">
+                Describe the moment, then hit “Get suggestions.”
+              </p>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                You'll get 2–3 story paths to choose from, narration to read
+                aloud, and a consequence you can bring back later — all checked
+                for age-appropriateness. You pick what happens; it's your table.
+              </p>
+            </div>
+          )}
+
           {loading && !suggestions && (
             <div className="space-y-3" aria-hidden>
               {[0, 1, 2].map((i) => (
@@ -522,7 +551,7 @@ function Index() {
           )}
 
           {suggestions && (
-            <div className="space-y-5">
+            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
               <SafetyBanner safety={safety} />
 
               {suggestions.design_notes && (
@@ -575,7 +604,7 @@ function Index() {
                   return (
                     <div
                       key={o.id}
-                      className="rounded-lg border border-border bg-card p-4 space-y-3"
+                      className={`rounded-lg border border-border bg-card p-4 space-y-3 shadow-sm transition-shadow hover:shadow-md ${toneBorder(o.tone)}`}
                     >
                       <div className="flex flex-wrap items-center gap-2">
                         <span
@@ -638,21 +667,24 @@ function Index() {
                           <div className="flex flex-wrap gap-2 pt-1">
                             <button
                               onClick={() => accept(o)}
-                              className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                              title="Use this outcome — it joins your Session Log"
+                              className="inline-flex items-center justify-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
                             >
-                              Accept
+                              ✓ Use this
                             </button>
                             <button
                               onClick={() => startRevise(o)}
-                              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
+                              title="Tell the co-pilot how to change it"
+                              className="inline-flex items-center justify-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
                             >
-                              Revise
+                              ✏️ Revise
                             </button>
                             <button
                               onClick={() => ignore(o.id)}
-                              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent"
+                              title="Dismiss this one"
+                              className="inline-flex items-center justify-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent"
                             >
-                              Ignore
+                              ✕ Ignore
                             </button>
                           </div>
                         </>
