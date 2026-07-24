@@ -807,7 +807,7 @@ function Index() {
               )}
 
               <Card label="Read of the moment">
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                <p className="text-base leading-relaxed whitespace-pre-wrap [&::first-letter]:font-display [&::first-letter]:text-3xl [&::first-letter]:font-semibold [&::first-letter]:text-primary [&::first-letter]:mr-0.5 [&::first-letter]:float-left [&::first-letter]:leading-[0.85] [&::first-letter]:mt-0.5">
                   {suggestions.read_of_moment}
                 </p>
               </Card>
@@ -825,7 +825,10 @@ function Index() {
 
               <section className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  <h2 className="manuscript-head flex items-center gap-2 text-sm font-semibold text-foreground">
+                    <svg viewBox="0 0 24 24" className="h-2 w-2 text-gold" fill="currentColor" aria-hidden>
+                      <path d="M12 2l4 10-4 10-4-10z" />
+                    </svg>
                     Story outcomes
                   </h2>
                   <button
@@ -1003,9 +1006,9 @@ function Index() {
           )}
         </div>
 
-        <aside className="lg:sticky lg:top-6 h-fit rounded-sm border border-border bg-card p-4">
+        <aside className="lg:sticky lg:top-6 h-fit rounded-sm border border-border border-t-2 border-t-gold bg-card p-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2 className="manuscript-head text-sm font-semibold text-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <ScrollIcon /> Session Log{log.length > 0 ? ` (${log.length})` : ""}
               </span>
@@ -1187,7 +1190,10 @@ function SafetyBanner({ safety }: { safety: SafetyVerdict | null }) {
 function Card({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="rounded-sm border border-border bg-card p-4 space-y-2">
-      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="manuscript-head flex items-center gap-2 text-sm font-semibold text-foreground">
+        <svg viewBox="0 0 24 24" className="h-2 w-2 shrink-0 text-gold" fill="currentColor" aria-hidden>
+          <path d="M12 2l4 10-4 10-4-10z" />
+        </svg>
         {label}
       </div>
       {children}

@@ -161,6 +161,17 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-body);
+    /* Fine, low-contrast paper grain — two faint tiled dot layers. Subtle
+     * enough to feel like stock, not decoration. No gradients/blobs. */
+    background-image:
+      radial-gradient(oklch(0.4 0.03 60 / 3%) 0.5px, transparent 0.5px),
+      radial-gradient(oklch(0.4 0.03 60 / 2.5%) 0.5px, transparent 0.5px);
+    background-size:
+      13px 13px,
+      21px 21px;
+    background-position:
+      0 0,
+      6px 6px;
   }
 
   h1,
@@ -168,5 +179,13 @@
   h3 {
     font-family: var(--font-display);
     letter-spacing: 0.01em;
+  }
+
+  /* Manuscript section label: small-caps, letter-spaced, with a short rule —
+   * like a chapter subhead in a printed rulebook. */
+  .manuscript-head {
+    font-family: var(--font-display);
+    font-variant: small-caps;
+    letter-spacing: 0.08em;
   }
 }
