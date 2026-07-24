@@ -1,5 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import {
+  CompassIcon,
+  D20Icon,
+  MasksIcon,
+  BookIcon,
+  ScrollIcon,
+  RewindIcon,
+  CheckIcon,
+  PencilIcon,
+  XIcon,
+  SoundOnIcon,
+  SoundOffIcon,
+  MusicOnIcon,
+  MusicOffIcon,
+  toneIcon,
+} from "@/lib/icons";
+import {
+  sfx,
+  setSfxMuted,
+  initialSfxMuted,
+  setMusicOn,
+  initialMusicOn,
+} from "@/lib/sound";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -116,20 +139,6 @@ function toneClass(tone: string) {
   }
 }
 
-function toneEmoji(tone: string) {
-  switch (tone) {
-    case "playful":
-      return "😄";
-    case "mystery":
-    case "intrigue":
-      return "🔮";
-    case "high-stakes":
-      return "⚡";
-    default:
-      return "✨";
-  }
-}
-
 // Colored left edge so the three options read as distinct paths at a glance.
 function toneBorder(tone: string) {
   switch (tone) {
@@ -194,9 +203,37 @@ function Index() {
   const [callback, setCallback] = useState<Callback | null>(null);
   const [callbackBusy, setCallbackBusy] = useState<string | null>(null);
   const [loadingLine, setLoadingLine] = useState(LOADING_LINES[0]);
+  const [muted, setMuted] = useState(false);
+  const [music, setMusic] = useState(false);
+
+  // Restore audio prefs (localStorage isn't available during SSR).
+  useEffect(() => {
+    const m = initialSfxMuted();
+    setMuted(m);
+    setSfxMuted(m);
+    if (initialMusicOn()) {
+      // Browsers require a user gesture before audio — flip the UI state and
+      // let the first click actually start the ambience.
+      setMusic(true);
+    }
+  }, []);
+
+  function toggleMute() {
+    const next = !muted;
+    setMuted(next);
+    setSfxMuted(next);
+    if (!next) sfx.click();
+  }
+
+  function toggleMusic() {
+    const next = !music;
+    setMusic(next);
+    setMusicOn(next);
+  }
 
   async function runGenerate() {
     if (!situation.trim()) return;
+    sfx.send();
     setLoadingLine(pickLoadingLine());
     setLoading(true);
     setError(null);
@@ -223,6 +260,7 @@ function Index() {
       const coerced = coerceSuggestions(parsed);
       if (coerced) {
         setSuggestions(coerced);
+        sfx.arrive();
       } else {
         setSuggestions(null);
         setRawFallback(raw || "(empty response)");
@@ -273,6 +311,7 @@ function Index() {
 
   // One click on a saved consequence weaves it back into the current scene.
   async function callBack(entry: LogEntry) {
+    sfx.callback();
     setCallbackBusy(entry.id);
     setCallback(null);
     try {
@@ -314,6 +353,7 @@ function Index() {
   }
 
   function accept(outcome: StoryOutcome) {
+    sfx.accept();
     setLog((prev) => [
       ...prev,
       {
@@ -326,6 +366,7 @@ function Index() {
   }
 
   function ignore(id: string) {
+    sfx.ignore();
     setDismissed((prev) => new Set(prev).add(id));
   }
 
@@ -416,14 +457,37 @@ function Index() {
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
       <header className="border-b border-border bg-gradient-to-r from-primary/10 via-transparent to-primary/5">
-        <div className="max-w-5xl mx-auto px-6 py-6">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            🗺️ Quest Craft — GM Co-Pilot
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Your players just went off the map? Perfect. Let's make it the best
-            part of the story.
-          </p>
+        <div className="max-w-5xl mx-auto px-6 py-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+              <CompassIcon className="h-6 w-6 text-primary" />
+              Quest Craft — GM Co-Pilot
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Your players just went off the map? Perfect. Let's make it the
+              best part of the story.
+            </p>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={toggleMusic}
+              title={music ? "Turn ambient music off" : "Turn ambient music on"}
+              aria-label={music ? "Turn ambient music off" : "Turn ambient music on"}
+              className={`rounded-md border border-input p-2 hover:bg-accent ${music ? "text-primary" : "text-muted-foreground"}`}
+            >
+              {music ? <MusicOnIcon /> : <MusicOffIcon />}
+            </button>
+            <button
+              type="button"
+              onClick={toggleMute}
+              title={muted ? "Unmute sounds" : "Mute sounds"}
+              aria-label={muted ? "Unmute sounds" : "Mute sounds"}
+              className={`rounded-md border border-input p-2 hover:bg-accent ${muted ? "text-muted-foreground" : "text-primary"}`}
+            >
+              {muted ? <SoundOffIcon /> : <SoundOnIcon />}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -515,7 +579,7 @@ function Index() {
 
           {!loading && !suggestions && !rawFallback && (
             <div className="rounded-lg border border-dashed border-border p-6 text-center space-y-2">
-              <div className="text-3xl">🎲</div>
+              <D20Icon className="h-10 w-10 mx-auto text-primary/60" />
               <p className="text-sm font-medium">
                 Describe the moment, then hit “Get suggestions.”
               </p>
@@ -610,11 +674,11 @@ function Index() {
                         <span
                           className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${toneClass(o.tone)}`}
                         >
-                          {toneEmoji(o.tone)} {o.tone}
+                          {toneIcon(o.tone)} {o.tone}
                         </span>
                         {o.dice_hook && (
-                          <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                            🎲 {o.dice_hook} check
+                          <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                            <D20Icon className="h-3.5 w-3.5" /> {o.dice_hook} check
                           </span>
                         )}
                       </div>
@@ -670,21 +734,21 @@ function Index() {
                               title="Use this outcome — it joins your Session Log"
                               className="inline-flex items-center justify-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
                             >
-                              ✓ Use this
+                              <CheckIcon /> Use this
                             </button>
                             <button
                               onClick={() => startRevise(o)}
                               title="Tell the co-pilot how to change it"
                               className="inline-flex items-center justify-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
                             >
-                              ✏️ Revise
+                              <PencilIcon /> Revise
                             </button>
                             <button
                               onClick={() => ignore(o.id)}
                               title="Dismiss this one"
                               className="inline-flex items-center justify-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent"
                             >
-                              ✕ Ignore
+                              <XIcon /> Ignore
                             </button>
                           </div>
                         </>
@@ -697,7 +761,9 @@ function Index() {
               <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-semibold uppercase tracking-wide text-primary">
-                    📖 Narration to say aloud
+                    <span className="inline-flex items-center gap-1.5">
+                      <BookIcon /> Narration to say aloud
+                    </span>
                   </div>
                   <button
                     type="button"
@@ -711,8 +777,8 @@ function Index() {
                   “{suggestions.narration}”
                 </p>
                 {suggestions.delivery_hint && (
-                  <p className="text-xs text-muted-foreground">
-                    🎭 <span className="italic">({suggestions.delivery_hint})</span>
+                  <p className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+                    <MasksIcon /> <span className="italic">({suggestions.delivery_hint})</span>
                   </p>
                 )}
               </div>
@@ -741,7 +807,9 @@ function Index() {
         <aside className="lg:sticky lg:top-6 h-fit rounded-lg border border-border bg-card p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              📜 Session Log{log.length > 0 ? ` (${log.length})` : ""}
+              <span className="inline-flex items-center gap-1.5">
+                <ScrollIcon /> Session Log{log.length > 0 ? ` (${log.length})` : ""}
+              </span>
             </h2>
             {log.length > 0 && (
               <button
@@ -793,9 +861,13 @@ function Index() {
                     disabled={callbackBusy !== null}
                     className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2 py-0.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
                   >
-                    {callbackBusy === entry.id
-                      ? "Weaving it in…"
-                      : "⏪ Call back now"}
+                    {callbackBusy === entry.id ? (
+                      "Weaving it in…"
+                    ) : (
+                      <>
+                        <RewindIcon /> Call back now
+                      </>
+                    )}
                   </button>
                 </li>
               ))}
@@ -811,8 +883,8 @@ function Index() {
                 “{callback.narration}”
               </p>
               {callback.delivery_hint && (
-                <p className="text-xs text-indigo-900/80 dark:text-indigo-200/80">
-                  🎭 ({callback.delivery_hint})
+                <p className="text-xs text-indigo-900/80 dark:text-indigo-200/80 inline-flex items-center gap-1.5">
+                  <MasksIcon /> ({callback.delivery_hint})
                 </p>
               )}
               {callback.hook && (
@@ -850,7 +922,7 @@ function SafetyBanner({ safety }: { safety: SafetyVerdict | null }) {
   if (!safety.reviewed) {
     return (
       <div className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
-        ⚠️ {safety.note ?? "Safety review unavailable — please use your own judgment."}
+        {safety.note ?? "Safety review unavailable — please use your own judgment."}
       </div>
     );
   }
@@ -858,7 +930,10 @@ function SafetyBanner({ safety }: { safety: SafetyVerdict | null }) {
   if (safety.severity === "none") {
     return (
       <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
-        ✓ Safety reviewed — no age-appropriateness concerns flagged for this group.
+        <span className="inline-flex items-center gap-1.5">
+          <CheckIcon /> Safety reviewed — no age-appropriateness concerns flagged
+          for this group.
+        </span>
       </div>
     );
   }
@@ -874,8 +949,8 @@ function SafetyBanner({ safety }: { safety: SafetyVerdict | null }) {
     >
       <div className="font-medium">
         {major
-          ? "⚠️ A second safety check flagged this — review before using."
-          : "⚠️ Minor age-appropriateness note from the safety check."}
+          ? "A second safety check flagged this — review before using."
+          : "Minor age-appropriateness note from the safety check."}
       </div>
       {safety.issues.length > 0 && (
         <ul className="list-disc pl-5 space-y-0.5">
