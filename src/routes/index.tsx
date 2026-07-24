@@ -741,7 +741,7 @@ function Index() {
         <aside className="lg:sticky lg:top-6 h-fit rounded-lg border border-border bg-card p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Session Log{log.length > 0 ? ` (${log.length})` : ""}
+              📜 Session Log{log.length > 0 ? ` (${log.length})` : ""}
             </h2>
             {log.length > 0 && (
               <button
@@ -763,7 +763,7 @@ function Index() {
               {log.map((entry, i) => (
                 <li
                   key={entry.id}
-                  className="rounded-md border border-border p-3 space-y-1"
+                  className="rounded-md border border-border p-3 space-y-1 animate-in fade-in slide-in-from-right-2 duration-300"
                 >
                   <div className="flex items-center justify-between">
                     <div className="text-xs text-muted-foreground">
