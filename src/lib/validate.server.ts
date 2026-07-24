@@ -23,6 +23,24 @@ export function sanitizeInput(text: string, max: number): string {
 const str = (v: unknown, max: number): string =>
   typeof v === "string" ? v.slice(0, max) : "";
 
+// Models occasionally wrap JSON in markdown fences despite instructions.
+// Strip them before parsing rather than failing to the raw-text fallback.
+export function stripFences(raw: string): string {
+  const m = raw.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+  return m ? m[1] : raw.trim();
+}
+
+function parseJson(raw: string): Record<string, unknown> | null {
+  try {
+    const parsed = JSON.parse(stripFences(raw));
+    return parsed && typeof parsed === "object"
+      ? (parsed as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 const TONES = new Set(["playful", "mystery", "intrigue", "high-stakes"]);
 const DICE = new Set(["Strength", "Wisdom", "Charisma", ""]);
 
@@ -44,14 +62,8 @@ export interface ValidatedSuggestions {
 // Returns null if the payload isn't usable JSON of roughly the right shape —
 // callers then fall back to plain-text display of nothing sensitive.
 export function validateSuggestions(raw: string): ValidatedSuggestions | null {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return null;
-  }
-  if (!parsed || typeof parsed !== "object") return null;
-  const o = parsed as Record<string, unknown>;
+  const o = parseJson(raw);
+  if (!o) return null;
 
   const outcomes = (Array.isArray(o.story_outcomes) ? o.story_outcomes : [])
     .slice(0, 3)
@@ -94,14 +106,8 @@ export interface ValidatedRevision {
 }
 
 export function validateRevision(raw: string): ValidatedRevision | null {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return null;
-  }
-  if (!parsed || typeof parsed !== "object") return null;
-  const o = parsed as Record<string, unknown>;
+  const o = parseJson(raw);
+  if (!o) return null;
   const tone = str(o.tone, 20);
   const dice = str(o.dice_hook, 20);
   const text = str(o.text, 600);
@@ -121,14 +127,8 @@ export interface ValidatedCallback {
 }
 
 export function validateCallback(raw: string): ValidatedCallback | null {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return null;
-  }
-  if (!parsed || typeof parsed !== "object") return null;
-  const o = parsed as Record<string, unknown>;
+  const o = parseJson(raw);
+  if (!o) return null;
   const narration = str(o.narration, 900);
   if (!narration) return null;
   return {
