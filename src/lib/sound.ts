@@ -39,33 +39,75 @@ export function initialSfxMuted(): boolean {
   }
 }
 
-function blip(freqs: number[], duration = 0.12, gainPeak = 0.08) {
+interface BlipOpts {
+  duration?: number;
+  gainPeak?: number;
+  type?: OscillatorType;
+  gap?: number; // seconds between notes in a sequence
+  glide?: boolean; // slide pitch to the next note instead of retriggering
+}
+
+function blip(freqs: number[], opts: BlipOpts = {}) {
   if (sfxMuted) return;
   const ac = audio();
   if (!ac) return;
+  const { duration = 0.12, gainPeak = 0.08, type = "sine", gap = 0.06, glide = false } = opts;
   const now = ac.currentTime;
+
+  // Glide mode: one oscillator sweeping through the notes (whoosh / zap feel).
+  if (glide && freqs.length > 1) {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freqs[0], now);
+    const total = duration;
+    freqs.forEach((f, i) => {
+      if (i === 0) return;
+      osc.frequency.exponentialRampToValueAtTime(f, now + (total * i) / (freqs.length - 1));
+    });
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(gainPeak, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + total);
+    osc.connect(gain).connect(ac.destination);
+    osc.start(now);
+    osc.stop(now + total + 0.05);
+    return;
+  }
+
   freqs.forEach((f, i) => {
     const osc = ac.createOscillator();
     const gain = ac.createGain();
-    osc.type = "sine";
+    osc.type = type;
     osc.frequency.value = f;
-    gain.gain.setValueAtTime(0, now + i * 0.06);
-    gain.gain.linearRampToValueAtTime(gainPeak, now + i * 0.06 + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + duration);
+    const t = now + i * gap;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(gainPeak, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
     osc.connect(gain).connect(ac.destination);
-    osc.start(now + i * 0.06);
-    osc.stop(now + i * 0.06 + duration + 0.05);
+    osc.start(t);
+    osc.stop(t + duration + 0.05);
   });
 }
 
-// Pentatonic-ish, so any combination sounds friendly.
+// Each action has its own recognizable character — timbre + shape, not just
+// pitch — so a GM learns the sounds without them ever getting loud.
 export const sfx = {
-  click: () => blip([660], 0.08, 0.05),
-  accept: () => blip([523, 659, 784], 0.15, 0.07), // rising major triad
-  ignore: () => blip([392], 0.1, 0.04),
-  send: () => blip([440, 554], 0.12, 0.06),
-  arrive: () => blip([784, 659], 0.14, 0.06), // gentle "ta-da" down
-  callback: () => blip([587, 494, 659], 0.13, 0.06),
+  // soft rounded tick
+  click: () => blip([620], { duration: 0.07, gainPeak: 0.045, type: "sine" }),
+  // warm rising major triad — a satisfying "yes, kept it"
+  accept: () =>
+    blip([523, 659, 784], { duration: 0.16, gainPeak: 0.07, type: "triangle", gap: 0.05 }),
+  // short low woody thunk — dismissive but gentle
+  ignore: () => blip([300, 220], { duration: 0.1, gainPeak: 0.05, type: "sine", glide: true }),
+  // quick upward "whoosh" — sending the request off
+  send: () =>
+    blip([392, 587, 880], { duration: 0.18, gainPeak: 0.05, type: "sawtooth", glide: true }),
+  // bright sparkly arpeggio — the suggestions have arrived
+  arrive: () =>
+    blip([659, 880, 1047, 1319], { duration: 0.13, gainPeak: 0.05, type: "sine", gap: 0.05 }),
+  // shimmering reverse-ish sweep — a thread woven back in
+  callback: () =>
+    blip([494, 659, 988], { duration: 0.22, gainPeak: 0.05, type: "triangle", glide: true }),
 };
 
 // ---------- Ambient music ----------
