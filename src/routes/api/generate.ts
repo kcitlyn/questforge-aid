@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SYSTEM_PROMPT } from "@/lib/gm-copilot-prompt.server";
+import { reviewOutput } from "@/lib/safety-review.server";
 
 interface Body {
   situation?: string;
@@ -48,9 +49,14 @@ export const Route = createFileRoute("/api/generate")({
           choices?: { message?: { content?: string } }[];
         };
         const content = data.choices?.[0]?.message?.content ?? "";
+
+        // Layer 2: independent safety review of the generated output, run
+        // server-side so nothing unreviewed ever reaches the browser.
+        const safety = await reviewOutput(content, apiKey);
+
         // Return the raw content so the client can attempt parsing and gracefully
         // fall back to showing it as text if the model returned non-JSON.
-        return Response.json({ raw: content });
+        return Response.json({ raw: content, safety });
       },
     },
   },

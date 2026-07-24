@@ -45,6 +45,15 @@ interface LogEntry {
   consequence_later: string;
 }
 
+interface SafetyVerdict {
+  reviewed: boolean;
+  safe: boolean;
+  severity: "none" | "minor" | "major";
+  issues: string[];
+  suggested_fix: string;
+  note?: string;
+}
+
 function newId() {
   return Math.random().toString(36).slice(2, 10);
 }
@@ -100,6 +109,7 @@ function Index() {
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
   const [rawFallback, setRawFallback] = useState<string | null>(null);
+  const [safety, setSafety] = useState<SafetyVerdict | null>(null);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [revising, setRevising] = useState<Record<string, string>>({});
   const [revisingBusy, setRevisingBusy] = useState<Set<string>>(new Set());
@@ -112,6 +122,7 @@ function Index() {
     setLoading(true);
     setError(null);
     setRawFallback(null);
+    setSafety(null);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -119,7 +130,11 @@ function Index() {
         body: JSON.stringify({ situation, ageRange, setting }),
       });
       if (!res.ok) throw new Error(await res.text());
-      const { raw } = (await res.json()) as { raw: string };
+      const { raw, safety: verdict } = (await res.json()) as {
+        raw: string;
+        safety?: SafetyVerdict;
+      };
+      if (verdict) setSafety(verdict);
       let parsed: unknown = null;
       try {
         parsed = JSON.parse(raw);
@@ -324,6 +339,8 @@ function Index() {
 
           {suggestions && (
             <div className="space-y-5">
+              <SafetyBanner safety={safety} />
+
               <Card label="Read of the moment">
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
                   {suggestions.read_of_moment}
@@ -484,6 +501,61 @@ function Index() {
           always in control.
         </div>
       </footer>
+    </div>
+  );
+}
+
+function SafetyBanner({ safety }: { safety: SafetyVerdict | null }) {
+  if (!safety) return null;
+
+  // Review couldn't run — fail safe: tell the GM to use judgment, don't claim safe.
+  if (!safety.reviewed) {
+    return (
+      <div className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+        ⚠️ {safety.note ?? "Safety review unavailable — please use your own judgment."}
+      </div>
+    );
+  }
+
+  if (safety.severity === "none") {
+    return (
+      <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+        ✓ Safety reviewed — no age-appropriateness concerns flagged for this group.
+      </div>
+    );
+  }
+
+  const major = safety.severity === "major";
+  return (
+    <div
+      className={`rounded-lg border p-3 text-sm space-y-2 ${
+        major
+          ? "border-rose-300 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
+          : "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
+      }`}
+    >
+      <div className="font-medium">
+        {major
+          ? "⚠️ A second safety check flagged this — review before using."
+          : "⚠️ Minor age-appropriateness note from the safety check."}
+      </div>
+      {safety.issues.length > 0 && (
+        <ul className="list-disc pl-5 space-y-0.5">
+          {safety.issues.map((issue, i) => (
+            <li key={i}>{issue}</li>
+          ))}
+        </ul>
+      )}
+      {safety.suggested_fix && (
+        <p>
+          <span className="font-medium">Softer version: </span>
+          {safety.suggested_fix}
+        </p>
+      )}
+      <p className="text-xs opacity-80">
+        You're still in control — you can use these suggestions, revise them, or
+        ignore them.
+      </p>
     </div>
   );
 }
