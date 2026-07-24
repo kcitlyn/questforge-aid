@@ -177,20 +177,42 @@ export function toneIcon(tone: string) {
 
 // ---------- Spot illustrations (same hand-drawn line style) ----------
 
-// A friendly tusked boar — the demo's Stormbristle Boar, used as the hero
-// illustration on the empty state so the tool's purpose reads instantly.
-export function BoarIllustration({ className = "h-24 w-24" }: IconProps) {
+// A quest emblem — a compass-star medallion in the icon line-style. Symmetric
+// geometry reads as "designed" (unlike a hand-coded animal), and the compass
+// echoes the app's "your players went off the map" theme. Used on the empty
+// state so the tool's purpose reads instantly.
+export function QuestEmblem({ className = "h-24 w-24" }: IconProps) {
   return (
-    <svg {...base} strokeWidth={1.4} className={className}>
-      {/* body */}
-      <path d="M3.5 14c0-2.5 2-4.2 4.5-4.4 1-1.2 2.6-1.9 4.3-1.9 2.8 0 5.2 1.7 5.9 4.1.9.3 1.8.9 1.8 1.9 0 .7-.5 1.2-1.1 1.4l-.6 2.2h-1.6l-.4-1.5c-.7.2-1.5.3-2.3.3H9.2l-.4 1.2H7.2l-.3-1.5C5 15.9 3.5 15.1 3.5 14z" />
-      {/* snout + tusks */}
-      <path d="M3.5 13.9l-1.3.3M4.2 15.3c-.5.2-.9.7-.7 1.2M5.3 12.4c-.6-.5-1.4-.4-1.8.2" />
-      {/* ear + eye */}
-      <path d="M9.6 9.9l1-1.8 1.2 1.4" />
-      <circle cx="6.7" cy="12.7" r="0.4" fill="currentColor" />
-      {/* little storm sparks, nodding at "Stormbristle" */}
-      <path d="M15 6.5l-1 1.7h1.3l-1 1.6" />
+    <svg
+      viewBox="0 0 64 64"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* outer + inner medallion rings */}
+      <circle cx="32" cy="32" r="27" strokeWidth={1.6} />
+      <circle cx="32" cy="32" r="22" strokeWidth={1} opacity={0.5} />
+      {/* tick marks around the ring, N/E/S/W longer */}
+      <g strokeWidth={1.4}>
+        <path d="M32 5v4M32 55v4M5 32h4M55 32h4" />
+      </g>
+      <g strokeWidth={1} opacity={0.6}>
+        <path d="M46.9 12.6l-1.8 2.4M17.1 51.4l1.8-2.4M51.4 46.9l-2.4-1.8M12.6 17.1l2.4 1.8M46.9 51.4l-1.8-2.4M17.1 12.6l1.8 2.4M51.4 17.1l-2.4 1.8M12.6 46.9l2.4-1.8" />
+      </g>
+      {/* four-point compass star */}
+      <path
+        d="M32 15l4.5 12.5L49 32l-12.5 4.5L32 49l-4.5-12.5L15 32l12.5-4.5z"
+        strokeWidth={1.6}
+      />
+      {/* secondary diagonal star, lighter, for a filled-out compass rose */}
+      <path
+        d="M32 22l2 8 8 2-8 2-2 8-2-8-8-2 8-2z"
+        strokeWidth={1}
+        opacity={0.55}
+      />
+      <circle cx="32" cy="32" r="1.6" fill="currentColor" stroke="none" />
     </svg>
   );
 }

@@ -14,7 +14,7 @@ import {
   SoundOffIcon,
   MusicOnIcon,
   MusicOffIcon,
-  BoarIllustration,
+  QuestEmblem,
   Divider,
   toneIcon,
 } from "@/lib/icons";
@@ -739,7 +739,7 @@ function Index() {
 
           {!loading && !suggestions && !rawFallback && (
             <div className="rounded-sm border border-dashed border-border p-8 text-center space-y-3">
-              <BoarIllustration className="h-24 w-24 mx-auto text-primary" />
+              <QuestEmblem className="h-24 w-24 mx-auto text-primary" />
               <p className="text-base font-medium font-display">
                 Describe the moment, then hit “Get suggestions.”
               </p>
