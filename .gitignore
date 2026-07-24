@@ -20,6 +20,12 @@ dist-ssr
 .env
 .env.*
 
+# Private working notes (not for the public repo)
+docs/SUBMISSION_EMAIL.md
+docs/DEMO_SCRIPT.md
+docs/SUBMISSION_CHECKLIST.md
+docs/CRITERIA_AUDIT.md
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
