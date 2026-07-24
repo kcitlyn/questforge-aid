@@ -538,12 +538,14 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
-      <header className="border-b border-border bg-gradient-to-r from-primary/10 via-transparent to-primary/5">
+      <header className="border-b border-border bg-gradient-to-r from-primary/15 via-transparent to-gold/10 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-6 py-6 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <CompassIcon className="h-6 w-6 text-primary" />
-              Quest Craft — GM Co-Pilot
+              <CompassIcon className="h-6 w-6 text-gold drop-shadow-[0_0_6px_var(--gold)]" />
+              <span className="bg-gradient-to-r from-primary via-foreground to-gold bg-clip-text text-transparent">
+                Quest Craft — GM Co-Pilot
+              </span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Your players just went off the map? Perfect. Let's make it the
@@ -820,7 +822,7 @@ function Index() {
                           </span>
                         )}
                         {o.dice_hook && (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-xs font-medium text-gold">
                             <D20Icon className="h-3.5 w-3.5" /> {o.dice_hook} check
                           </span>
                         )}
@@ -901,9 +903,9 @@ function Index() {
                 })}
               </section>
 
-              <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-4 space-y-2">
+              <div className="rounded-lg border border-gold/40 bg-gradient-to-br from-gold/10 to-transparent p-4 space-y-2 shadow-[0_0_25px_-8px_var(--gold)]">
                 <div className="flex items-center justify-between">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-primary">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-gold">
                     <span className="inline-flex items-center gap-1.5">
                       <BookIcon /> Narration to say aloud
                     </span>
