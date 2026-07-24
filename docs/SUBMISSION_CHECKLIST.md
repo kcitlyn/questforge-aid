@@ -67,7 +67,7 @@ Hi Ash,
 Thanks for the fun exercise — the live-gameplay-support angle was the part I
 found most interesting, so that's what I built toward. Here's my submission.
 
-**1. Prototype (live):** [PUBLISHED LOVABLE URL]
+**1. Prototype (live):** https://quest-craft-copilot-kaitchen.lovable.app
 [**Optional — 90-sec walkthrough:** [LOOM URL]]
 Repo: https://github.com/kcitlyn/questforge-aid
 

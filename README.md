@@ -4,7 +4,7 @@ An AI assistant that helps a tabletop-RPG **Game Master** (often an educator
 with zero RPG experience) respond when young players (ages 8–14) make an
 **unexpected choice** during a live session.
 
-Built for the Quest Craft AI Intern candidate exercise. **Live demo:** _[Lovable link]_
+Built for the Quest Craft AI Intern candidate exercise. **Live demo:** https://quest-craft-copilot-kaitchen.lovable.app
 
 ## What it does
 
