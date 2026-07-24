@@ -90,8 +90,10 @@ function toneClass(tone: string) {
   }
 }
 
+const DEFAULT_SITUATION = `The students defeated the Stormbristle Boar. Instead of accepting Artemis' blessing or treating the boar as sacred, they want to sell the tusks at the market, divide up the meat, and keep the profits. I need 2–3 possible story outcomes that respect their choice, create an interesting consequence, and keep the quest moving for ages 9–12.`;
+
 function Index() {
-  const [situation, setSituation] = useState("");
+  const [situation, setSituation] = useState(DEFAULT_SITUATION);
   const [ageRange, setAgeRange] = useState("9-12");
   const [setting, setSetting] = useState("Ancient Greek myth");
   const [loading, setLoading] = useState(false);
@@ -102,6 +104,7 @@ function Index() {
   const [revising, setRevising] = useState<Record<string, string>>({});
   const [revisingBusy, setRevisingBusy] = useState<Set<string>>(new Set());
   const [log, setLog] = useState<LogEntry[]>([]);
+
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
