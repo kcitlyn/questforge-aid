@@ -14,6 +14,8 @@ import {
   SoundOffIcon,
   MusicOnIcon,
   MusicOffIcon,
+  BoarIllustration,
+  Divider,
   toneIcon,
 } from "@/lib/icons";
 import {
@@ -128,28 +130,28 @@ function coerceSuggestions(obj: unknown): Suggestions | null {
 function toneClass(tone: string) {
   switch (tone) {
     case "playful":
-      return "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200";
+      return "bg-primary/12 text-primary";
     case "mystery":
     case "intrigue":
-      return "bg-indigo-100 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200";
+      return "bg-gold/15 text-gold";
     case "high-stakes":
-      return "bg-rose-100 text-rose-900 dark:bg-rose-950 dark:text-rose-200";
+      return "bg-destructive/12 text-destructive";
     default:
       return "bg-muted text-muted-foreground";
   }
 }
 
-// Colored left edge + faint matching wash so the three options read as
-// distinct paths at a glance — lively without shouting.
+// A thick colored spine on the left — like a tabbed page in a binder — so the
+// three paths read as distinct at a glance. Flat ink, no gradients.
 function toneBorder(tone: string) {
   switch (tone) {
     case "playful":
-      return "border-l-4 border-l-emerald-400 bg-gradient-to-r from-emerald-50/60 to-card dark:from-emerald-950/30";
+      return "border-l-4 border-l-primary";
     case "mystery":
     case "intrigue":
-      return "border-l-4 border-l-indigo-400 bg-gradient-to-r from-indigo-50/60 to-card dark:from-indigo-950/30";
+      return "border-l-4 border-l-gold";
     case "high-stakes":
-      return "border-l-4 border-l-rose-400 bg-gradient-to-r from-rose-50/60 to-card dark:from-rose-950/30";
+      return "border-l-4 border-l-destructive";
     default:
       return "border-l-4 border-l-border";
   }
@@ -538,19 +540,24 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
-      <header className="border-b border-border bg-gradient-to-r from-primary/15 via-transparent to-gold/10 backdrop-blur-sm">
-        <div className="max-w-5xl mx-auto px-6 py-6 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <CompassIcon className="h-6 w-6 text-gold drop-shadow-[0_0_6px_var(--gold)]" />
-              <span className="bg-gradient-to-r from-primary via-foreground to-gold bg-clip-text text-transparent">
-                Quest Craft — GM Co-Pilot
-              </span>
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Your players just went off the map? Perfect. Let's make it the
-              best part of the story.
-            </p>
+      <header className="border-b-2 border-primary bg-primary text-primary-foreground">
+        <div className="max-w-5xl mx-auto px-6 py-5 flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 place-items-center rounded-sm border border-primary-foreground/30 bg-primary-foreground/10">
+              <CompassIcon className="h-7 w-7" />
+            </span>
+            <div>
+              <h1 className="text-2xl tracking-tight font-semibold">
+                Quest Craft
+                <span className="ml-2 text-base font-normal opacity-80">
+                  GM Co-Pilot
+                </span>
+              </h1>
+              <p className="text-sm opacity-85 mt-0.5">
+                Players went off the map? Perfect. Let's make it the best part
+                of the story.
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-1 shrink-0">
             <button
@@ -558,7 +565,7 @@ function Index() {
               onClick={toggleMusic}
               title={music ? "Turn ambient music off" : "Turn ambient music on"}
               aria-label={music ? "Turn ambient music off" : "Turn ambient music on"}
-              className={`rounded-md border border-input p-2 hover:bg-accent ${music ? "text-primary" : "text-muted-foreground"}`}
+              className={`rounded-sm border border-primary-foreground/30 p-2 hover:bg-primary-foreground/10 ${music ? "opacity-100" : "opacity-60"}`}
             >
               {music ? <MusicOnIcon /> : <MusicOffIcon />}
             </button>
@@ -567,7 +574,7 @@ function Index() {
               onClick={toggleMute}
               title={muted ? "Unmute sounds" : "Mute sounds"}
               aria-label={muted ? "Unmute sounds" : "Mute sounds"}
-              className={`rounded-md border border-input p-2 hover:bg-accent ${muted ? "text-muted-foreground" : "text-primary"}`}
+              className={`rounded-sm border border-primary-foreground/30 p-2 hover:bg-primary-foreground/10 ${muted ? "opacity-60" : "opacity-100"}`}
             >
               {muted ? <SoundOffIcon /> : <SoundOnIcon />}
             </button>
@@ -579,7 +586,7 @@ function Index() {
         <div className="space-y-8">
           <form
             onSubmit={onSubmit}
-            className="rounded-lg border border-border bg-card p-5 space-y-4"
+            className="rounded-sm border border-border bg-card p-5 space-y-4"
           >
             <div className="space-y-2">
               <label htmlFor="situation" className="text-sm font-medium">
@@ -593,7 +600,7 @@ function Index() {
                 rows={6}
                 maxLength={2000}
                 placeholder={placeholder}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring resize-y"
+                className="w-full rounded-sm border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring resize-y"
               />
               {situation.length > 1800 && (
                 <p className="text-xs text-amber-600 dark:text-amber-400">
@@ -631,7 +638,7 @@ function Index() {
                 onChange={(e) => setDirection(e.target.value.slice(0, 300))}
                 maxLength={300}
                 placeholder="e.g. make it funnier, and have the sea-witch turn out to be their long-lost aunt"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                className="w-full rounded-sm border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
               <div className="flex flex-wrap items-center gap-2">
                 {VIBE_QUICKFILLS.map((v) => (
@@ -661,19 +668,38 @@ function Index() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <label htmlFor="age" className="text-sm font-medium">
-                  Age range
-                </label>
-                <select
-                  id="age"
-                  value={ageRange}
-                  onChange={(e) => setAgeRange(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                <span className="text-sm font-medium">Age range</span>
+                {/* Segmented control: clearer current state + one tap, no menu */}
+                <div
+                  role="radiogroup"
+                  aria-label="Age range"
+                  className="flex rounded-sm border border-input overflow-hidden"
                 >
-                  <option value="8-10">8–10</option>
-                  <option value="9-12">9–12</option>
-                  <option value="11-14">11–14</option>
-                </select>
+                  {["8-10", "9-12", "11-14"].map((a, i) => {
+                    const on = ageRange === a;
+                    return (
+                      <button
+                        key={a}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        onClick={() => {
+                          sfx.click();
+                          setAgeRange(a);
+                        }}
+                        className={`flex-1 px-3 py-2 text-sm transition-colors ${
+                          i > 0 ? "border-l border-input" : ""
+                        } ${
+                          on
+                            ? "bg-primary text-primary-foreground font-medium"
+                            : "bg-background text-muted-foreground hover:bg-accent"
+                        }`}
+                      >
+                        {a.replace("-", "–")}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="space-y-2">
                 <label htmlFor="setting" className="text-sm font-medium">
@@ -683,7 +709,7 @@ function Index() {
                   id="setting"
                   value={setting}
                   onChange={(e) => setSetting(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full rounded-sm border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
             </div>
@@ -692,7 +718,7 @@ function Index() {
               <button
                 type="submit"
                 disabled={loading || !situation.trim()}
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
+                className="inline-flex items-center justify-center gap-2 rounded-sm bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:bg-primary disabled:opacity-50"
               >
                 {loading ? (
                   loadingLine
@@ -712,15 +738,21 @@ function Index() {
           </form>
 
           {!loading && !suggestions && !rawFallback && (
-            <div className="rounded-lg border border-dashed border-border p-6 text-center space-y-2">
-              <D20Icon className="h-10 w-10 mx-auto text-primary/60" />
-              <p className="text-sm font-medium">
+            <div className="rounded-sm border border-dashed border-border p-8 text-center space-y-3">
+              <BoarIllustration className="h-24 w-24 mx-auto text-primary" />
+              <p className="text-base font-medium font-display">
                 Describe the moment, then hit “Get suggestions.”
               </p>
-              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
                 You'll get 2–3 story paths to choose from, narration to read
                 aloud, and a consequence you can bring back later — all checked
                 for age-appropriateness. You pick what happens; it's your table.
+              </p>
+              <Divider className="max-w-xs mx-auto pt-1" />
+              <p className="text-xs text-muted-foreground">
+                New here? Tap a{" "}
+                <span className="font-medium text-foreground">Try</span> example
+                above to see it in action.
               </p>
             </div>
           )}
@@ -730,7 +762,7 @@ function Index() {
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="rounded-lg border border-border bg-card p-4 space-y-2"
+                  className="rounded-sm border border-border bg-card p-4 space-y-2"
                 >
                   <div className="h-4 w-24 rounded bg-muted animate-pulse" />
                   <div className="h-3 w-full rounded bg-muted animate-pulse" />
@@ -786,7 +818,7 @@ function Index() {
                     type="button"
                     onClick={runGenerate}
                     disabled={loading}
-                    className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-sm border border-input bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
                   >
                     {loading ? (
                       loadingLine
@@ -808,7 +840,7 @@ function Index() {
                   return (
                     <div
                       key={o.id}
-                      className={`rounded-lg border border-border bg-card p-4 space-y-3 shadow-sm transition-shadow hover:shadow-md ${toneBorder(o.tone)}`}
+                      className={`rounded-sm border border-border bg-card p-4 space-y-3 shadow-sm transition-shadow hover:shadow-md ${toneBorder(o.tone)}`}
                     >
                       <div className="flex flex-wrap items-center gap-2">
                         <span
@@ -842,19 +874,19 @@ function Index() {
                             }
                             rows={3}
                             placeholder="Notes for revision (e.g. make it less scary, add a friendly NPC)…"
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring resize-y"
+                            className="w-full rounded-sm border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring resize-y"
                           />
                           <div className="flex gap-2">
                             <button
                               onClick={() => submitRevise(o)}
                               disabled={busy}
-                              className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                              className="inline-flex items-center justify-center rounded-sm bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                             >
                               {busy ? "Revising…" : "Regenerate"}
                             </button>
                             <button
                               onClick={() => cancelRevise(o.id)}
-                              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
+                              className="inline-flex items-center justify-center rounded-sm border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
                             >
                               Cancel
                             </button>
@@ -877,21 +909,21 @@ function Index() {
                             <button
                               onClick={() => accept(o)}
                               title="Use this outcome — it joins your Session Log"
-                              className="inline-flex items-center justify-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                              className="inline-flex items-center justify-center gap-1 rounded-sm bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
                             >
                               <CheckIcon /> Use this
                             </button>
                             <button
                               onClick={() => startRevise(o)}
                               title="Tell the co-pilot how to change it"
-                              className="inline-flex items-center justify-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
+                              className="inline-flex items-center justify-center gap-1 rounded-sm border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
                             >
                               <PencilIcon /> Revise
                             </button>
                             <button
                               onClick={() => ignore(o.id)}
                               title="Dismiss this one"
-                              className="inline-flex items-center justify-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent"
+                              className="inline-flex items-center justify-center gap-1 rounded-sm border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent"
                             >
                               <XIcon /> Ignore
                             </button>
@@ -903,7 +935,9 @@ function Index() {
                 })}
               </section>
 
-              <div className="rounded-lg border border-gold/40 bg-gradient-to-br from-gold/10 to-transparent p-4 space-y-2 shadow-[0_0_25px_-8px_var(--gold)]">
+              <Divider />
+
+              <div className="rounded-sm border-l-4 border-l-gold border border-border bg-card p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-semibold uppercase tracking-wide text-gold">
                     <span className="inline-flex items-center gap-1.5">
@@ -913,7 +947,7 @@ function Index() {
                   <button
                     type="button"
                     onClick={() => copyNarration(suggestions.narration)}
-                    className="rounded-md border border-input bg-background px-2 py-0.5 text-xs font-medium hover:bg-accent"
+                    className="rounded-sm border border-input bg-background px-2 py-0.5 text-xs font-medium hover:bg-accent"
                   >
                     {copied ? (
                       <span className="inline-flex items-center gap-1">
@@ -955,7 +989,7 @@ function Index() {
           )}
         </div>
 
-        <aside className="lg:sticky lg:top-6 h-fit rounded-lg border border-border bg-card p-4">
+        <aside className="lg:sticky lg:top-6 h-fit rounded-sm border border-border bg-card p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
@@ -985,7 +1019,7 @@ function Index() {
               {log.map((entry, i) => (
                 <li
                   key={entry.id}
-                  className="rounded-md border border-border p-3 space-y-1 animate-in fade-in slide-in-from-right-2 duration-300"
+                  className="rounded-sm border border-border p-3 space-y-1 animate-in fade-in slide-in-from-right-2 duration-300"
                 >
                   <div className="flex items-center justify-between">
                     <div className="text-xs text-muted-foreground">
@@ -1013,7 +1047,7 @@ function Index() {
                     type="button"
                     onClick={() => callBack(entry)}
                     disabled={callbackBusy !== null}
-                    className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2 py-0.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-sm border border-input bg-background px-2 py-0.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
                   >
                     {callbackBusy === entry.id ? (
                       "Weaving it in…"
@@ -1029,21 +1063,21 @@ function Index() {
           )}
 
           {callback && (
-            <div className="mt-3 rounded-md border border-indigo-300 bg-indigo-50 p-3 space-y-1.5 dark:border-indigo-900 dark:bg-indigo-950">
-              <div className="text-xs font-semibold uppercase tracking-wide text-indigo-900 dark:text-indigo-200">
+            <div className="mt-3 rounded-sm border border-gold/50 border-l-4 border-l-gold bg-gold/5 p-3 space-y-1.5">
+              <div className="text-xs font-semibold uppercase tracking-wide text-gold">
                 Bring it back
               </div>
-              <p className="text-sm italic leading-relaxed text-indigo-950 dark:text-indigo-100">
+              <p className="text-sm italic leading-relaxed text-card-foreground">
                 “{callback.narration}”
               </p>
               {callback.delivery_hint && (
-                <p className="text-xs text-indigo-900/80 dark:text-indigo-200/80 inline-flex items-center gap-1.5">
+                <p className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
                   <MasksIcon /> ({callback.delivery_hint})
                 </p>
               )}
               {callback.hook && (
-                <p className="text-xs text-indigo-900/80 dark:text-indigo-200/80">
-                  <span className="font-medium">Next: </span>
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">Next: </span>
                   {callback.hook}
                 </p>
               )}
@@ -1053,7 +1087,7 @@ function Index() {
                   sfx.ignore();
                   setCallback(null);
                 }}
-                className="text-xs text-indigo-900/70 hover:text-indigo-900 dark:text-indigo-200/70 dark:hover:text-indigo-200"
+                className="text-xs text-muted-foreground hover:text-foreground"
               >
                 Dismiss
               </button>
@@ -1062,7 +1096,7 @@ function Index() {
         </aside>
       </main>
 
-      <footer className="fixed bottom-0 inset-x-0 border-t border-border bg-background/95 backdrop-blur">
+      <footer className="fixed bottom-0 inset-x-0 border-t border-border bg-background">
         <div className="max-w-5xl mx-auto px-6 py-3 text-center text-xs text-muted-foreground">
           These are suggestions. Accept, revise, or ignore any of them. You're
           always in control.
@@ -1078,7 +1112,7 @@ function SafetyBanner({ safety }: { safety: SafetyVerdict | null }) {
   // Review couldn't run — fail safe: tell the GM to use judgment, don't claim safe.
   if (!safety.reviewed) {
     return (
-      <div className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+      <div className="rounded-sm border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
         {safety.note ?? "Safety review unavailable — please use your own judgment."}
       </div>
     );
@@ -1086,7 +1120,7 @@ function SafetyBanner({ safety }: { safety: SafetyVerdict | null }) {
 
   if (safety.severity === "none") {
     return (
-      <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+      <div className="rounded-sm border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
         <span className="inline-flex items-center gap-1.5">
           <CheckIcon /> Safety reviewed — no age-appropriateness concerns flagged
           for this group.
@@ -1098,7 +1132,7 @@ function SafetyBanner({ safety }: { safety: SafetyVerdict | null }) {
   const major = safety.severity === "major";
   return (
     <div
-      className={`rounded-lg border p-3 text-sm space-y-2 ${
+      className={`rounded-sm border p-3 text-sm space-y-2 ${
         major
           ? "border-rose-300 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
           : "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
@@ -1132,7 +1166,7 @@ function SafetyBanner({ safety }: { safety: SafetyVerdict | null }) {
 
 function Card({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-2">
+    <div className="rounded-sm border border-border bg-card p-4 space-y-2">
       <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </div>

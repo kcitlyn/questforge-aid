@@ -174,3 +174,44 @@ export function toneIcon(tone: string) {
       return <SmileIcon />;
   }
 }
+
+// ---------- Spot illustrations (same hand-drawn line style) ----------
+
+// A friendly tusked boar — the demo's Stormbristle Boar, used as the hero
+// illustration on the empty state so the tool's purpose reads instantly.
+export function BoarIllustration({ className = "h-24 w-24" }: IconProps) {
+  return (
+    <svg {...base} strokeWidth={1.4} className={className}>
+      {/* body */}
+      <path d="M3.5 14c0-2.5 2-4.2 4.5-4.4 1-1.2 2.6-1.9 4.3-1.9 2.8 0 5.2 1.7 5.9 4.1.9.3 1.8.9 1.8 1.9 0 .7-.5 1.2-1.1 1.4l-.6 2.2h-1.6l-.4-1.5c-.7.2-1.5.3-2.3.3H9.2l-.4 1.2H7.2l-.3-1.5C5 15.9 3.5 15.1 3.5 14z" />
+      {/* snout + tusks */}
+      <path d="M3.5 13.9l-1.3.3M4.2 15.3c-.5.2-.9.7-.7 1.2M5.3 12.4c-.6-.5-1.4-.4-1.8.2" />
+      {/* ear + eye */}
+      <path d="M9.6 9.9l1-1.8 1.2 1.4" />
+      <circle cx="6.7" cy="12.7" r="0.4" fill="currentColor" />
+      {/* little storm sparks, nodding at "Stormbristle" */}
+      <path d="M15 6.5l-1 1.7h1.3l-1 1.6" />
+    </svg>
+  );
+}
+
+// A simple chapter divider: a centered diamond flanked by rules. Purely
+// decorative — echoes a printed adventure book's section breaks.
+export function Divider({ className = "" }: IconProps) {
+  return (
+    <div
+      className={`flex items-center gap-3 text-border ${className}`}
+      aria-hidden
+    >
+      <span className="h-px flex-1 bg-current" />
+      <svg
+        viewBox="0 0 24 24"
+        className="h-2.5 w-2.5 text-gold"
+        fill="currentColor"
+      >
+        <path d="M12 2l4 10-4 10-4-10z" />
+      </svg>
+      <span className="h-px flex-1 bg-current" />
+    </div>
+  );
+}

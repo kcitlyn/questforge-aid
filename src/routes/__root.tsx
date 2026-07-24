@@ -101,10 +101,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
-  // The app's primary look is the immersive "starlit night" theme — set the
-  // dark class on <html> so it applies before first paint (no flash).
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
