@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { reviewOutput } from "@/lib/safety-review.server";
 
 // "Callback" — resurface a consequence the GM accepted earlier in the session.
 // This is what makes "a consequence that matters later" a live feature: one
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/api/callback")({
     handlers: {
       POST: async ({ request }) => {
         const body = (await request.json()) as Body;
-        const consequence = (body.consequence || body.entryText || "").trim();
+        const consequence = (body.consequence || body.entryText || "").trim().slice(0, 1000);
         if (!consequence) {
           return new Response("A saved consequence is required", { status: 400 });
         }
@@ -37,16 +38,16 @@ export const Route = createFileRoute("/api/callback")({
         if (!apiKey) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
         const userMsg = `Age range: ${body.ageRange || "9-12"}
-Setting: ${body.setting || "Ancient Greek myth"}
+Setting: ${(body.setting || "Ancient Greek myth").slice(0, 100)}
 
 Earlier in this session the GM accepted this outcome:
-${body.entryText || "(not provided)"}
+${(body.entryText || "(not provided)").slice(0, 1000)}
 
 With this consequence to pay off later:
 ${consequence}
 
 Current situation (may be empty):
-${body.situation || "(not provided)"}
+${(body.situation || "(not provided)").slice(0, 2000)}
 
 Bring the consequence back into the story now. Return JSON as specified.`;
 
@@ -67,14 +68,17 @@ Bring the consequence back into the story now. Return JSON as specified.`;
         });
 
         if (!res.ok) {
-          const text = await res.text();
-          return new Response(text || "AI gateway error", { status: res.status });
+          return new Response("Something went wrong. Please try again.", { status: 502 });
         }
         const data = (await res.json()) as {
           choices?: { message?: { content?: string } }[];
         };
         const content = data.choices?.[0]?.message?.content ?? "";
-        return Response.json({ raw: content });
+
+        // Layer 2 safety review — no endpoint is a bypass.
+        const safety = await reviewOutput(content, apiKey, body.ageRange || "9-12");
+
+        return Response.json({ raw: content, safety });
       },
     },
   },

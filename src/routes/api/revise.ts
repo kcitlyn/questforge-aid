@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { reviewOutput } from "@/lib/safety-review.server";
 
 const SYSTEM_PROMPT = `You revise a single Game Master story outcome for a tabletop RPG with young players (ages 8-14). The GM will give you the original situation, the outcome they want revised, and their revision notes. Produce ONE improved outcome.
 
@@ -28,19 +29,23 @@ export const Route = createFileRoute("/api/revise")({
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
+        // Input length guards (OWASP LLM04).
+        const notes = (body.revisionNotes || "(make it better)").slice(0, 1000);
+        const situationText = (body.situation || "").slice(0, 2000);
+
         const userMsg = `Age range: ${body.ageRange || "9-12"}
-Setting: ${body.setting || "Ancient Greek myth"}
+Setting: ${(body.setting || "Ancient Greek myth").slice(0, 100)}
 
 Original situation:
-${body.situation || ""}
+${situationText}
 
 Outcome to revise:
-Tone: ${body.originalOutcome?.tone || ""}
-Text: ${body.originalOutcome?.text || ""}
-Consequence later: ${body.originalOutcome?.consequence_later || ""}
+Tone: ${(body.originalOutcome?.tone || "").slice(0, 20)}
+Text: ${(body.originalOutcome?.text || "").slice(0, 500)}
+Consequence later: ${(body.originalOutcome?.consequence_later || "").slice(0, 300)}
 
 GM's revision notes:
-${body.revisionNotes || "(make it better)"}
+${notes}
 
 Return JSON as specified.`;
 
@@ -61,14 +66,17 @@ Return JSON as specified.`;
         });
 
         if (!res.ok) {
-          const text = await res.text();
-          return new Response(text || "AI gateway error", { status: res.status });
+          return new Response("Something went wrong revising. Please try again.", { status: 502 });
         }
         const data = (await res.json()) as {
           choices?: { message?: { content?: string } }[];
         };
         const content = data.choices?.[0]?.message?.content ?? "";
-        return Response.json({ raw: content });
+
+        // Layer 2 safety review — same as generate, so revise isn't a bypass.
+        const safety = await reviewOutput(content, apiKey, body.ageRange || "9-12");
+
+        return Response.json({ raw: content, safety });
       },
     },
   },

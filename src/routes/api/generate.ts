@@ -17,8 +17,12 @@ export const Route = createFileRoute("/api/generate")({
         if (!situation) {
           return new Response("Situation is required", { status: 400 });
         }
+        // Guard against payload abuse (OWASP LLM04: Model Denial of Service).
+        if (situation.length > 2000) {
+          return new Response("Input too long (max 2000 chars)", { status: 400 });
+        }
         const ageRange = body.ageRange || "9-12";
-        const setting = body.setting || "Ancient Greek myth";
+        const setting = (body.setting || "Ancient Greek myth").slice(0, 100);
 
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
@@ -42,8 +46,8 @@ export const Route = createFileRoute("/api/generate")({
         });
 
         if (!res.ok) {
-          const text = await res.text();
-          return new Response(text || "AI gateway error", { status: res.status });
+          // Don't forward raw gateway errors (may leak internals).
+          return new Response("Something went wrong generating suggestions. Please try again.", { status: 502 });
         }
         const data = (await res.json()) as {
           choices?: { message?: { content?: string } }[];

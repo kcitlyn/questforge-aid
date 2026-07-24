@@ -425,12 +425,18 @@ function Index() {
               <textarea
                 id="situation"
                 value={situation}
-                onChange={(e) => setSituation(e.target.value)}
+                onChange={(e) => setSituation(e.target.value.slice(0, 2000))}
                 onKeyDown={onTextareaKeyDown}
                 rows={6}
+                maxLength={2000}
                 placeholder="The party ignored the oracle and tried to ride the Minotaur..."
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring resize-y"
               />
+              {situation.length > 1800 && (
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  {2000 - situation.length} characters remaining
+                </p>
+              )}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-muted-foreground">Try:</span>
                 {EXAMPLE_SCENARIOS.map((ex) => (
