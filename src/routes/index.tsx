@@ -116,6 +116,34 @@ function toneClass(tone: string) {
   }
 }
 
+function toneEmoji(tone: string) {
+  switch (tone) {
+    case "playful":
+      return "😄";
+    case "mystery":
+    case "intrigue":
+      return "🔮";
+    case "high-stakes":
+      return "⚡";
+    default:
+      return "✨";
+  }
+}
+
+// Themed loading lines — GMs see this constantly; make it part of the world.
+const LOADING_LINES = [
+  "Consulting the oracle…",
+  "Rolling initiative…",
+  "Asking Artemis nicely…",
+  "Shuffling the fates…",
+  "Bribing the muses…",
+  "Reading the entrails (of a scroll)…",
+];
+
+function pickLoadingLine() {
+  return LOADING_LINES[Math.floor(Math.random() * LOADING_LINES.length)];
+}
+
 const DEFAULT_SITUATION = `The students defeated the Stormbristle Boar. Instead of accepting Artemis' blessing or treating the boar as sacred, they want to sell the tusks at the market, divide up the meat, and keep the profits. I need 2–3 possible story outcomes that respect their choice, create an interesting consequence, and keep the quest moving for ages 9–12.`;
 
 // A few one-click starters so a first-time GM (or a reviewer) can explore fast.
@@ -150,9 +178,11 @@ function Index() {
   const [copied, setCopied] = useState(false);
   const [callback, setCallback] = useState<Callback | null>(null);
   const [callbackBusy, setCallbackBusy] = useState<string | null>(null);
+  const [loadingLine, setLoadingLine] = useState(LOADING_LINES[0]);
 
   async function runGenerate() {
     if (!situation.trim()) return;
+    setLoadingLine(pickLoadingLine());
     setLoading(true);
     setError(null);
     setRawFallback(null);
@@ -376,7 +406,8 @@ function Index() {
             Quest Craft — GM Co-Pilot
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Live help when young players do something you didn't plan for.
+            Your players just went off the map? Perfect. Let's make it the best
+            part of the story.
           </p>
         </div>
       </header>
@@ -450,7 +481,7 @@ function Index() {
                 disabled={loading || !situation.trim()}
                 className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
-                {loading ? "Thinking…" : "Get suggestions"}
+                {loading ? loadingLine : "Get suggestions"}
               </button>
               <span className="text-xs text-muted-foreground hidden sm:inline">
                 ⌘/Ctrl + Enter
@@ -524,7 +555,7 @@ function Index() {
                     disabled={loading}
                     className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
                   >
-                    {loading ? "Thinking…" : "↻ More ideas"}
+                    {loading ? loadingLine : "↻ More ideas"}
                   </button>
                 </div>
                 {visibleOutcomes.length === 0 && (
@@ -542,9 +573,9 @@ function Index() {
                     >
                       <div className="flex flex-wrap items-center gap-2">
                         <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${toneClass(o.tone)}`}
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${toneClass(o.tone)}`}
                         >
-                          {o.tone}
+                          {toneEmoji(o.tone)} {o.tone}
                         </span>
                         {o.dice_hook && (
                           <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">
@@ -686,8 +717,8 @@ function Index() {
           </div>
           {log.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Accepted outcomes and their consequences collect here, so you can
-              call them back later in the session.
+              Your story's threads collect here. Accept an outcome and it joins
+              the log — ready to call back when the moment is right.
             </p>
           ) : (
             <ol className="space-y-3">
