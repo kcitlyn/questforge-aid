@@ -52,7 +52,7 @@ export const Route = createFileRoute("/api/generate")({
 
         // Layer 2: independent safety review of the generated output, run
         // server-side so nothing unreviewed ever reaches the browser.
-        const safety = await reviewOutput(content, apiKey);
+        const safety = await reviewOutput(content, apiKey, ageRange);
 
         // Return the raw content so the client can attempt parsing and gracefully
         // fall back to showing it as text if the model returned non-JSON.

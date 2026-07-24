@@ -44,6 +44,26 @@ prototype — so the design is defensible, not guessed.
 - **`clarifying_question`** models the deck's gameplay loop ("listen & ask
   questions") instead of just dictating what happens.
 
-## Two-layer safety (unchanged, still core)
+## Round 2: the safety reviewer, rebuilt as a proper LLM-as-judge
+
+The generation prompt got the research treatment first; a second research pass
+(Anthropic's evaluation/grading guide) showed the Layer-2 reviewer lagged behind
+known **LLM-as-judge** best practices. Applied:
+
+| Judge best practice | What changed in `safety-review.server.ts` |
+|---|---|
+| Judge ONE dimension | Prompt now states the single question: appropriate for this age band? |
+| Anchor the rubric endpoints | "none/minor/major" each get an operational definition (what a "minor" *is*: fixable with a one-phrase soften) |
+| Calibration examples | 3 worked examples — one deliberate PASS (charging boar = fine) to prevent over-flagging, one major (gore), one minor (too-scary ghost for 8–10) |
+| Give the judge needed context | The **age band** is now passed to the reviewer — "dramatic tension fine for 11–14 may be minor for 8–10" |
+| Delimit content in XML tags | Content under review is wrapped in `<content_to_review>` tags, separate from instructions |
+| Bare parseable verdict | JSON-only verdict, strictly validated, unknown severities coerced conservatively |
+| Uncertainty rule | "When genuinely uncertain between two severities, choose the more cautious one" |
+| Use a different judge model | **Known tradeoff, documented:** we reuse the gateway default model since an unverified model ID would break every review; production would move the judge to a separate, cheaper model |
+
+The over-flagging guard matters as much as the under-flagging one: a safety layer
+that flags every charging boar trains the GM to ignore it.
+
+## Two-layer safety (still core)
 Generation + an independent reviewer pass that fails safe. See `SAFETY_PASS.md`
 and `SAFETY_TEST_CASES.md`.
