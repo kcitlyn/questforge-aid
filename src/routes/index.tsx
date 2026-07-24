@@ -162,15 +162,35 @@ const LOADING_LINES = [
   "Shuffling the fates…",
   "Bribing the muses…",
   "Reading the entrails (of a scroll)…",
+  "Waking the sleeping bard…",
+  "Untangling the fates' yarn…",
+  "Polishing a plot twist…",
+  "Negotiating with a minor god…",
 ];
 
 function pickLoadingLine() {
   return LOADING_LINES[Math.floor(Math.random() * LOADING_LINES.length)];
 }
 
+// Rotating placeholders — every one is a real "kids went off-script" moment, so
+// the empty box quietly teaches the GM what this tool is actually for.
+const PLACEHOLDERS = [
+  "The party ignored the oracle and tried to ride the Minotaur…",
+  "They want to unionize the goblins for better working conditions…",
+  "Instead of the boss fight, they challenged the dragon to a bake-off…",
+  "They're convinced the friendly innkeeper is the real villain…",
+  "The heroes want to give the cursed sword a hug and 'talk it out'…",
+];
+
+function pickPlaceholder() {
+  return PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)];
+}
+
 const DEFAULT_SITUATION = `The students defeated the Stormbristle Boar. Instead of accepting Artemis' blessing or treating the boar as sacred, they want to sell the tusks at the market, divide up the meat, and keep the profits. I need 2–3 possible story outcomes that respect their choice, create an interesting consequence, and keep the quest moving for ages 9–12.`;
 
 // A few one-click starters so a first-time GM (or a reviewer) can explore fast.
+// The labels lean quirky on purpose: unexpected kid-logic is exactly the
+// "off the map" moment this tool exists for — and it makes the demo delightful.
 const EXAMPLE_SCENARIOS: { label: string; text: string }[] = [
   {
     label: "Sell the sacred boar (demo)",
@@ -181,8 +201,16 @@ const EXAMPLE_SCENARIOS: { label: string; text: string }[] = [
     text: "The players were supposed to fight the sea-witch, but instead they want to befriend her and invite her to join the party. How do I keep the quest going for ages 8–10?",
   },
   {
-    label: "Ignore the quest entirely",
+    label: "Open a snack stand",
     text: "The heroes don't care about the oracle's warning — they'd rather open a snack stand in the marketplace and get rich. I need options that respect that for ages 9–12.",
+  },
+  {
+    label: "Adopt the monster",
+    text: "The party refuses to slay the Hydra. They've named it 'Gary' and want to keep it as a pet. I need 2–3 outcomes that honor that for ages 8–10 without derailing the whole quest.",
+  },
+  {
+    label: "Bribe a god",
+    text: "Instead of completing Zeus's trial, the players try to bribe him with a very nice sandwich they packed. How do I handle this for ages 9–12 and keep it fun?",
   },
 ];
 
@@ -205,6 +233,7 @@ function Index() {
   const [loadingLine, setLoadingLine] = useState(LOADING_LINES[0]);
   const [muted, setMuted] = useState(false);
   const [music, setMusic] = useState(false);
+  const [placeholder, setPlaceholder] = useState(PLACEHOLDERS[0]);
 
   // Restore audio prefs (localStorage isn't available during SSR).
   useEffect(() => {
@@ -216,6 +245,8 @@ function Index() {
       // let the first click actually start the ambience.
       setMusic(true);
     }
+    // Pick a rotating placeholder client-side to avoid an SSR/client mismatch.
+    setPlaceholder(pickPlaceholder());
   }, []);
 
   function toggleMute() {
@@ -508,7 +539,7 @@ function Index() {
                 onKeyDown={onTextareaKeyDown}
                 rows={6}
                 maxLength={2000}
-                placeholder="The party ignored the oracle and tried to ride the Minotaur..."
+                placeholder={placeholder}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring resize-y"
               />
               {situation.length > 1800 && (
@@ -654,12 +685,18 @@ function Index() {
                     disabled={loading}
                     className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
                   >
-                    {loading ? loadingLine : "↻ More ideas"}
+                    {loading ? (
+                      loadingLine
+                    ) : (
+                      <>
+                        <D20Icon className="h-3.5 w-3.5" /> Roll again
+                      </>
+                    )}
                   </button>
                 </div>
                 {visibleOutcomes.length === 0 && (
                   <p className="text-sm text-muted-foreground italic">
-                    All outcomes handled — tap “More ideas” for a fresh set.
+                    All outcomes handled — tap “Roll again” for a fresh set.
                   </p>
                 )}
                 {visibleOutcomes.map((o) => {
@@ -770,7 +807,13 @@ function Index() {
                     onClick={() => copyNarration(suggestions.narration)}
                     className="rounded-md border border-input bg-background px-2 py-0.5 text-xs font-medium hover:bg-accent"
                   >
-                    {copied ? "Copied ✓" : "Copy"}
+                    {copied ? (
+                      <span className="inline-flex items-center gap-1">
+                        <CheckIcon /> Copied
+                      </span>
+                    ) : (
+                      "Copy"
+                    )}
                   </button>
                 </div>
                 <p className="text-base leading-relaxed italic whitespace-pre-wrap">
@@ -841,9 +884,9 @@ function Index() {
                       type="button"
                       onClick={() => removeLogEntry(entry.id)}
                       aria-label="Remove from log"
-                      className="text-xs text-muted-foreground hover:text-destructive"
+                      className="text-muted-foreground hover:text-destructive"
                     >
-                      ✕
+                      <XIcon className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   <div className="text-sm">{entry.text}</div>
