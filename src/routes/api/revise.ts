@@ -1,21 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const SYSTEM_PROMPT = `You revise a single Game Master story outcome for a tabletop RPG with young players (ages 8-14). The GM will give you the original situation, the outcome they want revised, and their revision notes. Produce ONE improved outcome plus a matching consequence.
+const SYSTEM_PROMPT = `You revise a single Game Master story outcome for a tabletop RPG with young players (ages 8-14). The GM will give you the original situation, the outcome they want revised, and their revision notes. Produce ONE improved outcome.
 
-Respond with valid JSON ONLY in this shape:
+Respond ONLY as JSON in this exact shape (no markdown):
 {
-  "title": "Short outcome title",
-  "description": "1-3 sentence description of what happens in the fiction.",
-  "consequence": "A single consequence that matters later."
+  "tone": "playful | intrigue | high-stakes",
+  "text": "1-3 sentences describing what happens in the fiction",
+  "consequence_later": "a consequence that matters later"
 }
 
-Keep it age-appropriate, warm, vivid, and true to the setting. No markdown fences.`;
+Keep it age-appropriate, warm, vivid, and true to the setting.`;
 
 interface Body {
   situation?: string;
   ageRange?: string;
   setting?: string;
-  originalOutcome?: { title?: string; description?: string };
+  originalOutcome?: { tone?: string; text?: string; consequence_later?: string };
   revisionNotes?: string;
 }
 
@@ -34,8 +34,9 @@ Original situation:
 ${body.situation || ""}
 
 Outcome to revise:
-Title: ${body.originalOutcome?.title || ""}
-Description: ${body.originalOutcome?.description || ""}
+Tone: ${body.originalOutcome?.tone || ""}
+Text: ${body.originalOutcome?.text || ""}
+Consequence later: ${body.originalOutcome?.consequence_later || ""}
 
 GM's revision notes:
 ${body.revisionNotes || "(make it better)"}
@@ -65,14 +66,8 @@ Return JSON as specified.`;
         const data = (await res.json()) as {
           choices?: { message?: { content?: string } }[];
         };
-        const content = data.choices?.[0]?.message?.content ?? "{}";
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(content);
-        } catch {
-          return new Response("Model returned invalid JSON", { status: 502 });
-        }
-        return Response.json(parsed);
+        const content = data.choices?.[0]?.message?.content ?? "";
+        return Response.json({ raw: content });
       },
     },
   },
