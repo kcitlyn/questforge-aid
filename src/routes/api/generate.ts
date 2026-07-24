@@ -2,23 +2,26 @@ import { createFileRoute } from "@tanstack/react-router";
 
 const SYSTEM_PROMPT = `You are a Game Master's co-pilot for tabletop RPG sessions with young players (ages 8-14). The GM will describe an unexpected player choice or situation they need help with. Respond with age-appropriate, imaginative, and safe suggestions.
 
-You MUST respond with valid JSON in exactly this shape:
+You MUST respond ONLY as JSON in this exact shape (no markdown, no prose outside JSON):
 {
-  "read_of_the_moment": "A short paragraph interpreting what's happening at the table and what the players seem to want.",
+  "read_of_moment": "string — a short paragraph reading what's happening at the table",
   "story_outcomes": [
-    { "title": "Short outcome title", "description": "1-3 sentence description of what could happen in the fiction." }
+    {
+      "tone": "playful | intrigue | high-stakes",
+      "text": "string — 1-3 sentences describing what could happen in the fiction",
+      "consequence_later": "string — a consequence that matters later in the session or campaign"
+    }
   ],
-  "narration": "A short piece of narration the GM can read aloud to the table.",
-  "consequence": "A single consequence that matters later in the session or campaign.",
-  "safety_notes": "Brief notes on tone, themes, or content sensitivity for the given age range."
+  "narration": "string — a short piece of narration the GM can read aloud",
+  "safety_notes": ["string", "string"]
 }
 
 Rules:
-- Provide 2 or 3 story_outcomes.
+- Provide 2 or 3 story_outcomes, each with a different tone from the allowed set.
 - Keep language warm, vivid, and age-appropriate for the specified age range.
 - Avoid graphic violence, romance, or scary content beyond age norms.
 - Honor the setting.
-- Return ONLY the JSON, no markdown fences, no prose outside JSON.`;
+- Return ONLY the JSON object.`;
 
 interface Body {
   situation?: string;
@@ -66,14 +69,10 @@ export const Route = createFileRoute("/api/generate")({
         const data = (await res.json()) as {
           choices?: { message?: { content?: string } }[];
         };
-        const content = data.choices?.[0]?.message?.content ?? "{}";
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(content);
-        } catch {
-          return new Response("Model returned invalid JSON", { status: 502 });
-        }
-        return Response.json(parsed);
+        const content = data.choices?.[0]?.message?.content ?? "";
+        // Return the raw content so the client can attempt parsing and gracefully
+        // fall back to showing it as text if the model returned non-JSON.
+        return Response.json({ raw: content });
       },
     },
   },
