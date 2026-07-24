@@ -23,29 +23,71 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+type Tone = "playful" | "intrigue" | "high-stakes";
+
 interface StoryOutcome {
   id: string;
-  title: string;
-  description: string;
+  tone: Tone | string;
+  text: string;
+  consequence_later: string;
 }
 
 interface Suggestions {
-  read_of_the_moment: string;
+  read_of_moment: string;
   story_outcomes: StoryOutcome[];
   narration: string;
-  consequence: string;
-  safety_notes: string;
+  safety_notes: string[];
 }
 
 interface LogEntry {
   id: string;
-  title: string;
-  description: string;
-  consequence: string;
+  text: string;
+  consequence_later: string;
 }
 
 function newId() {
   return Math.random().toString(36).slice(2, 10);
+}
+
+function coerceSuggestions(obj: unknown): Suggestions | null {
+  if (!obj || typeof obj !== "object") return null;
+  const o = obj as Record<string, unknown>;
+  const outcomesRaw = Array.isArray(o.story_outcomes) ? o.story_outcomes : [];
+  const outcomes: StoryOutcome[] = outcomesRaw.map((oc) => {
+    const r = (oc || {}) as Record<string, unknown>;
+    return {
+      id: newId(),
+      tone: typeof r.tone === "string" ? r.tone : "playful",
+      text: typeof r.text === "string" ? r.text : "",
+      consequence_later:
+        typeof r.consequence_later === "string" ? r.consequence_later : "",
+    };
+  });
+  const safety = Array.isArray(o.safety_notes)
+    ? o.safety_notes.filter((n): n is string => typeof n === "string")
+    : typeof o.safety_notes === "string"
+      ? [o.safety_notes]
+      : [];
+  return {
+    read_of_moment:
+      typeof o.read_of_moment === "string" ? o.read_of_moment : "",
+    story_outcomes: outcomes,
+    narration: typeof o.narration === "string" ? o.narration : "",
+    safety_notes: safety,
+  };
+}
+
+function toneClass(tone: string) {
+  switch (tone) {
+    case "playful":
+      return "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200";
+    case "intrigue":
+      return "bg-indigo-100 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200";
+    case "high-stakes":
+      return "bg-rose-100 text-rose-900 dark:bg-rose-950 dark:text-rose-200";
+    default:
+      return "bg-muted text-muted-foreground";
+  }
 }
 
 function Index() {
@@ -55,6 +97,7 @@ function Index() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
+  const [rawFallback, setRawFallback] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [revising, setRevising] = useState<Record<string, string>>({});
   const [revisingBusy, setRevisingBusy] = useState<Set<string>>(new Set());
@@ -65,6 +108,7 @@ function Index() {
     if (!situation.trim()) return;
     setLoading(true);
     setError(null);
+    setRawFallback(null);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -72,21 +116,20 @@ function Index() {
         body: JSON.stringify({ situation, ageRange, setting }),
       });
       if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      const outcomes: StoryOutcome[] = Array.isArray(data.story_outcomes)
-        ? data.story_outcomes.map((o: { title?: string; description?: string }) => ({
-            id: newId(),
-            title: String(o.title ?? ""),
-            description: String(o.description ?? ""),
-          }))
-        : [];
-      setSuggestions({
-        read_of_the_moment: String(data.read_of_the_moment ?? ""),
-        story_outcomes: outcomes,
-        narration: String(data.narration ?? ""),
-        consequence: String(data.consequence ?? ""),
-        safety_notes: String(data.safety_notes ?? ""),
-      });
+      const { raw } = (await res.json()) as { raw: string };
+      let parsed: unknown = null;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        parsed = null;
+      }
+      const coerced = coerceSuggestions(parsed);
+      if (coerced) {
+        setSuggestions(coerced);
+      } else {
+        setSuggestions(null);
+        setRawFallback(raw || "(empty response)");
+      }
       setDismissed(new Set());
       setRevising({});
     } catch (err) {
@@ -97,14 +140,12 @@ function Index() {
   }
 
   function accept(outcome: StoryOutcome) {
-    if (!suggestions) return;
     setLog((prev) => [
       ...prev,
       {
         id: newId(),
-        title: outcome.title,
-        description: outcome.description,
-        consequence: suggestions.consequence,
+        text: outcome.text,
+        consequence_later: outcome.consequence_later,
       },
     ]);
     setDismissed((prev) => new Set(prev).add(outcome.id));
@@ -115,7 +156,7 @@ function Index() {
   }
 
   function startRevise(o: StoryOutcome) {
-    setRevising((prev) => ({ ...prev, [o.id]: o.description }));
+    setRevising((prev) => ({ ...prev, [o.id]: o.text }));
   }
 
   function cancelRevise(id: string) {
@@ -127,7 +168,6 @@ function Index() {
   }
 
   async function submitRevise(o: StoryOutcome) {
-    if (!suggestions) return;
     const notes = revising[o.id] ?? "";
     setRevisingBusy((prev) => new Set(prev).add(o.id));
     try {
@@ -138,12 +178,22 @@ function Index() {
           situation,
           ageRange,
           setting,
-          originalOutcome: { title: o.title, description: o.description },
+          originalOutcome: {
+            tone: o.tone,
+            text: o.text,
+            consequence_later: o.consequence_later,
+          },
           revisionNotes: notes,
         }),
       });
       if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
+      const { raw } = (await res.json()) as { raw: string };
+      let parsed: Record<string, unknown> | null = null;
+      try {
+        parsed = JSON.parse(raw) as Record<string, unknown>;
+      } catch {
+        parsed = null;
+      }
       setSuggestions((prev) =>
         prev
           ? {
@@ -152,14 +202,21 @@ function Index() {
                 so.id === o.id
                   ? {
                       id: so.id,
-                      title: String(data.title ?? so.title),
-                      description: String(data.description ?? so.description),
+                      tone:
+                        parsed && typeof parsed.tone === "string"
+                          ? parsed.tone
+                          : so.tone,
+                      text:
+                        parsed && typeof parsed.text === "string"
+                          ? parsed.text
+                          : raw || so.text,
+                      consequence_later:
+                        parsed && typeof parsed.consequence_later === "string"
+                          ? parsed.consequence_later
+                          : so.consequence_later,
                     }
                   : so,
               ),
-              consequence: data.consequence
-                ? String(data.consequence)
-                : prev.consequence,
             }
           : prev,
       );
@@ -254,11 +311,19 @@ function Index() {
             </div>
           </form>
 
+          {rawFallback && (
+            <Card label="Raw response (JSON parse failed)">
+              <pre className="text-xs whitespace-pre-wrap break-words font-mono text-muted-foreground">
+                {rawFallback}
+              </pre>
+            </Card>
+          )}
+
           {suggestions && (
             <div className="space-y-5">
               <Card label="Read of the moment">
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {suggestions.read_of_the_moment}
+                  {suggestions.read_of_moment}
                 </p>
               </Card>
 
@@ -279,11 +344,15 @@ function Index() {
                       key={o.id}
                       className="rounded-lg border border-border bg-card p-4 space-y-3"
                     >
-                      <h3 className="font-medium">{o.title}</h3>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${toneClass(o.tone)}`}
+                      >
+                        {o.tone}
+                      </span>
                       {isRevising ? (
                         <>
                           <p className="text-xs text-muted-foreground">
-                            Current: {o.description}
+                            Current: {o.text}
                           </p>
                           <textarea
                             value={revising[o.id]}
@@ -316,8 +385,16 @@ function Index() {
                       ) : (
                         <>
                           <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                            {o.description}
+                            {o.text}
                           </p>
+                          {o.consequence_later && (
+                            <p className="text-xs text-muted-foreground">
+                              <span className="font-semibold text-foreground">
+                                Later:{" "}
+                              </span>
+                              {o.consequence_later}
+                            </p>
+                          )}
                           <div className="flex flex-wrap gap-2 pt-1">
                             <button
                               onClick={() => accept(o)}
@@ -351,16 +428,16 @@ function Index() {
                 </p>
               </Card>
 
-              <Card label="Consequence that matters later">
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {suggestions.consequence}
-                </p>
-              </Card>
-
               <Card label="Safety notes">
-                <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
-                  {suggestions.safety_notes}
-                </p>
+                {suggestions.safety_notes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">None.</p>
+                ) : (
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                    {suggestions.safety_notes.map((n, i) => (
+                      <li key={i}>{n}</li>
+                    ))}
+                  </ul>
+                )}
               </Card>
             </div>
           )}
@@ -382,14 +459,15 @@ function Index() {
                   className="rounded-md border border-border p-3 space-y-1"
                 >
                   <div className="text-xs text-muted-foreground">#{i + 1}</div>
-                  <div className="text-sm font-medium">{entry.title}</div>
-                  <div className="text-xs">{entry.description}</div>
-                  <div className="text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">
-                      Consequence:{" "}
-                    </span>
-                    {entry.consequence}
-                  </div>
+                  <div className="text-sm">{entry.text}</div>
+                  {entry.consequence_later && (
+                    <div className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        Later:{" "}
+                      </span>
+                      {entry.consequence_later}
+                    </div>
+                  )}
                 </li>
               ))}
             </ol>
