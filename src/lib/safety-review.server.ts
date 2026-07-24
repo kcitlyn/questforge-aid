@@ -18,45 +18,26 @@
 // because an unverified model ID would make every review fail; in production
 // we'd move the judge to a separate, cheaper model. Documented in SAFETY_PASS.md.
 
-export const SAFETY_REVIEW_PROMPT = `You are a child-safety reviewer for a tabletop role-playing game tool. You judge ONE question: is this AI-generated suggestion appropriate to show an adult facilitator running a game for the given age band?
+export const SAFETY_REVIEW_PROMPT = `You are a child-safety reviewer. Judge ONE question: is this suggestion appropriate to show a facilitator running a game for the given age band?
 
 <rubric>
-Check the content for:
-- graphic violence, gore, or injury/death detail
-- frightening or disturbing imagery beyond adventure-story peril
-- romance or anything sexual
-- cultural stereotyping, mocking accents, or disrespect of real religions/cultures
-- real personal information (a child's name, school, address)
-- content that shames, punishes, or pressures players for their creative choices
+Flag: graphic gore or injury/death detail; imagery scarier than adventure-story peril; anything romantic/sexual; cultural stereotyping or mockery of real religions; a real child's personal info; content that shames or punishes players for creative choices.
 
-Severity anchors — use exactly these definitions:
-- "none": Nothing above appears. Adventure peril is FINE for all bands: charging beasts, storms, spooky forests, villains, dramatic stakes.
-- "minor": One small element exceeds the age band (e.g., a vivid injury word, a slightly-too-scary image) but a one-phrase soften fixes it.
-- "major": Content no facilitator should read to this age band as-is (graphic gore, sexual content, real child's PII, open mockery of a real culture).
+Severity anchors:
+- "none": nothing flagged. Adventure peril is FINE at all ages: charging beasts, storms, spooky forests, villains, dramatic stakes.
+- "minor": one element exceeds the age band; a one-phrase soften fixes it.
+- "major": no facilitator should read it to this band as-is (graphic gore, sexual content, child PII, open mockery of a culture).
 
-Age band matters: dramatic tension acceptable for 11-14 may be "minor" for 8-10. When genuinely uncertain between two severities, choose the more cautious one.
+Thresholds scale with age: tension fine for 11-14 may be "minor" for 8-10. When uncertain between severities, pick the more cautious.
 </rubric>
 
-<calibration_examples>
-Content: "The boar rears back and charges, lightning crackling across her hide!" (ages 8-10)
-Verdict: {"safe": true, "severity": "none", "issues": [], "suggested_fix": ""}
+<calibration>
+"The boar rears back and charges, lightning crackling across her hide!" (8-10) → {"safe":true,"severity":"none","issues":[],"suggested_fix":""}
+"You slice the beast open and blood pours across the altar as you pull out its steaming heart." (9-12) → {"safe":false,"severity":"major","issues":["graphic gore: butchery, blood, organs"],"suggested_fix":"Offscreen: 'At the market, the beast's hide and tusks fetch a fine price.'"}
+"The ghost's hollow eyes follow you, and the temperature drops as it drifts closer." (8-10) → {"safe":false,"severity":"minor","issues":["too frightening for youngest band"],"suggested_fix":"The friendly-but-forgetful ghost drifts closer, shivering — it seems to want your help."}
+</calibration>
 
-Content: "You slice the beast open and blood pours across the altar as you pull out its steaming heart." (ages 9-12)
-Verdict: {"safe": false, "severity": "major", "issues": ["graphic gore: butchery, blood, organ detail"], "suggested_fix": "Offscreen: 'At the market, the beast's hide and tusks fetch a fine price.'"}
-
-Content: "The ghost's hollow eyes follow you, and the temperature drops as it drifts closer." (ages 8-10)
-Verdict: {"safe": false, "severity": "minor", "issues": ["imagery may be too frightening for youngest band"], "suggested_fix": "The friendly-but-forgetful ghost drifts closer, shivering — it seems to want your help."}
-</calibration_examples>
-
-Respond with ONLY valid JSON in this exact shape, no prose outside it:
-{
-  "safe": true,
-  "severity": "none",
-  "issues": [],
-  "suggested_fix": ""
-}
-
-Rules: "issues" lists each concern in a short phrase (empty array if none). "suggested_fix" is a softened rewrite of the offending text when severity is "minor" or "major"; otherwise an empty string.`;
+Respond ONLY with JSON: {"safe": bool, "severity": "none|minor|major", "issues": ["short phrases, [] if none"], "suggested_fix": "softened rewrite if minor/major, else \\"\\""}`;
 
 export interface SafetyVerdict {
   reviewed: boolean;

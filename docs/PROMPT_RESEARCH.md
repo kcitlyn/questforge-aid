@@ -64,6 +64,17 @@ known **LLM-as-judge** best practices. Applied:
 The over-flagging guard matters as much as the under-flagging one: a safety layer
 that flags every charging boar trains the GM to ignore it.
 
+## Round 3: compression pass
+
+Final edit applied the "be clear and direct" principle against the prompts
+themselves: cut ~40% of the words while keeping every element research says
+actually steers (role, diverse few-shots, anchored rubric, calibration
+examples, self-check). What was cut: repeated ideas, flowery framing, rules
+restated in multiple sections. What was deliberately kept despite costing
+words: the few-shot examples — Anthropic's guide calls examples the most
+reliable steering tool, so trimming them to save tokens would be a false
+economy. Shorter isn't the goal; zero wasted words is.
+
 ## Two-layer safety (still core)
 Generation + an independent reviewer pass that fails safe. See `SAFETY_PASS.md`
 and `SAFETY_TEST_CASES.md`.
