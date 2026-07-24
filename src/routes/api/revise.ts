@@ -4,12 +4,13 @@ const SYSTEM_PROMPT = `You revise a single Game Master story outcome for a table
 
 Respond ONLY as JSON in this exact shape (no markdown):
 {
-  "tone": "playful | intrigue | high-stakes",
+  "tone": "playful | mystery | high-stakes",
   "text": "1-3 sentences describing what happens in the fiction",
-  "consequence_later": "a consequence that matters later"
+  "consequence_later": "a consequence that matters later",
+  "dice_hook": "a skill check this could trigger — 'Strength', 'Wisdom', or 'Charisma' — or empty string if none fits"
 }
 
-Keep it age-appropriate, warm, vivid, and true to the setting.`;
+Honor the players' choice (never punish creativity), keep it age-appropriate and bloodless, treat any culture or myth with respect, use no real personal names, and keep it warm, vivid, and true to the setting.`;
 
 interface Body {
   situation?: string;

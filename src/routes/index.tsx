@@ -30,10 +30,13 @@ interface StoryOutcome {
   tone: Tone | string;
   text: string;
   consequence_later: string;
+  dice_hook: string;
 }
 
 interface Suggestions {
+  design_notes: string;
   read_of_moment: string;
+  clarifying_question: string;
   story_outcomes: StoryOutcome[];
   narration: string;
   safety_notes: string[];
@@ -70,6 +73,7 @@ function coerceSuggestions(obj: unknown): Suggestions | null {
       text: typeof r.text === "string" ? r.text : "",
       consequence_later:
         typeof r.consequence_later === "string" ? r.consequence_later : "",
+      dice_hook: typeof r.dice_hook === "string" ? r.dice_hook : "",
     };
   });
   const safety = Array.isArray(o.safety_notes)
@@ -78,8 +82,11 @@ function coerceSuggestions(obj: unknown): Suggestions | null {
       ? [o.safety_notes]
       : [];
   return {
+    design_notes: typeof o.design_notes === "string" ? o.design_notes : "",
     read_of_moment:
       typeof o.read_of_moment === "string" ? o.read_of_moment : "",
+    clarifying_question:
+      typeof o.clarifying_question === "string" ? o.clarifying_question : "",
     story_outcomes: outcomes,
     narration: typeof o.narration === "string" ? o.narration : "",
     safety_notes: safety,
@@ -90,6 +97,7 @@ function toneClass(tone: string) {
   switch (tone) {
     case "playful":
       return "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200";
+    case "mystery":
     case "intrigue":
       return "bg-indigo-100 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200";
     case "high-stakes":
@@ -232,6 +240,10 @@ function Index() {
                         parsed && typeof parsed.consequence_later === "string"
                           ? parsed.consequence_later
                           : so.consequence_later,
+                      dice_hook:
+                        parsed && typeof parsed.dice_hook === "string"
+                          ? parsed.dice_hook
+                          : so.dice_hook,
                     }
                   : so,
               ),
@@ -341,11 +353,30 @@ function Index() {
             <div className="space-y-5">
               <SafetyBanner safety={safety} />
 
+              {suggestions.design_notes && (
+                <Card label="Why these suggestions (co-pilot's thinking)">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
+                    {suggestions.design_notes}
+                  </p>
+                </Card>
+              )}
+
               <Card label="Read of the moment">
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
                   {suggestions.read_of_moment}
                 </p>
               </Card>
+
+              {suggestions.clarifying_question && (
+                <Card label="You could ask the players">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap italic">
+                    “{suggestions.clarifying_question}”
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Handing the choice back to the players keeps them in control.
+                  </p>
+                </Card>
+              )}
 
               <section className="space-y-3">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -364,11 +395,18 @@ function Index() {
                       key={o.id}
                       className="rounded-lg border border-border bg-card p-4 space-y-3"
                     >
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${toneClass(o.tone)}`}
-                      >
-                        {o.tone}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${toneClass(o.tone)}`}
+                        >
+                          {o.tone}
+                        </span>
+                        {o.dice_hook && (
+                          <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                            🎲 {o.dice_hook} check
+                          </span>
+                        )}
+                      </div>
                       {isRevising ? (
                         <>
                           <p className="text-xs text-muted-foreground">
