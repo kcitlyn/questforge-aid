@@ -41,7 +41,7 @@ guardrails, 3 examples, self_check) is maintained in
 into the model call. It is the single source of truth so the doc and the running
 app never drift.
 
-## Design highlights to mention in the submission
+## Design highlights
 - **Few-shot examples** are the highest-leverage technique per Anthropic's guide;
   one example deliberately shows the model *reframing* a gory player idea into an
   offscreen, age-appropriate trophy instead of refusing.

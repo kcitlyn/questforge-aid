@@ -1,7 +1,6 @@
 # Design & Tradeoffs — GM Co-Pilot
 
-A short record of *why* this is built the way it is. (The exercise explicitly
-evaluates "ability to explain tradeoffs and next steps.")
+A short record of *why* this is built the way it is.
 
 ## The problem I chose to solve
 Quest Craft's deck names the real adoption barrier: **confidence, not interest.**
@@ -26,7 +25,7 @@ Craft's #1 stated principle into something you can click, not just read.
 **3. Two-layer safety** (see `SAFETY_PASS.md`).
 Generation is layer 1; an independent safety-review model call is layer 2. It
 fails *safe* (softens/withholds, never fails open) and still returns control to
-the GM. This is the core AI-engineering claim of the submission.
+the GM. This is the core of the AI-engineering work here.
 
 **4. Tone-diverse outcomes.**
 The prompt forces 2–3 outcomes with *different* tones (playful / mystery /

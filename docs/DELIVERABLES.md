@@ -1,7 +1,7 @@
-# Quest Craft AI Intern Exercise — Submission Deliverables
+# Quest Craft GM Co-Pilot — Deliverables
 
-Covers items 2–7 from the exercise. Item 1 (prototype link) comes from Lovable
-after you publish. Item 6 (partner email) is personalized separately.
+Covers items 2–7 of the exercise. Item 1 is the live prototype link; item 6
+(partner email) lives in `PARTNER_EMAIL.md`.
 
 **Where this fits Quest Craft:** The deck defines three AI Co-Pilot pillars —
 Quest development, GM preparation/training, and **Live gameplay support**. This
@@ -96,7 +96,7 @@ in `src/lib/gm-copilot-prompt.server.ts`. Key design choices to mention:
 
 ---
 
-## 5. Safety & quality guardrails (pick 3 to highlight)
+## 5. Safety & quality guardrails
 
 1. **Age-appropriateness (8–14).** The system prompt bans gore, graphic violence,
    and frightening imagery, and instructs the model to *reframe* mature player
@@ -112,8 +112,8 @@ in `src/lib/gm-copilot-prompt.server.ts`. Key design choices to mention:
    keep gods in the source material's kid-friendly register. Prevents
    "culturally careless mythology content."
 
-*(Bonus if asked for more: **privacy** — the prompt forbids requesting or echoing
-student names/PII; **concision** — a hard length cap keeps it usable live.)*
+Two more that matter: **privacy** — the prompt forbids requesting or echoing
+student names/PII; and **concision** — a hard length cap keeps it usable live.
 
 ---
 

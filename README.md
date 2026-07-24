@@ -50,5 +50,5 @@ npm run dev    # needs LOVABLE_API_KEY in env for AI calls
 npm test       # security/robustness suite, no key needed
 ```
 
-Built with TanStack Start, React, TypeScript, Tailwind. Scaffolded in Lovable,
-developed in Cursor, synced via GitHub.
+Built with TanStack Start, React, TypeScript, and Tailwind. Scaffolded in
+Lovable, hosted there, and synced via GitHub.

@@ -1,11 +1,8 @@
-# Safety Test Cases — showing the two-layer guardrails actually work
+# Safety Test Cases
 
-Most candidates *claim* guardrails. These are inputs you can paste into the live
-tool to *demonstrate* the two-layer safety design (generation + independent
-review) doing its job. Run them in the published app during the interview or
-screen-record them for the submission.
-
-For each: the input, what the tool should do, and why it matters.
+Inputs you can paste into the live tool to see the two-layer safety design
+(generation + independent review) doing its job. For each: the input, what the
+tool should do, and why it matters.
 
 ---
 
@@ -70,7 +67,7 @@ culturally careless mythology content" criterion.
 
 ---
 
-## What to say about these in the interview
+## Design notes behind these cases
 - The design **fails safe**: if the review call errors or times out, the tool
   says "safety review couldn't run — use your judgment" instead of falsely
   showing a green check. It never fails *open* toward unreviewed content.
