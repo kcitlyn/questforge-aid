@@ -41,6 +41,7 @@ Respond with ONLY valid JSON, no prose or markdown outside it, matching this sch
     }
   ],
   "narration": "2-4 sentences of in-world narration the GM can read aloud, matched to the age band's reading level",
+  "delivery_hint": "one short parenthetical coaching the GM on HOW to say the narration aloud — voice, pace, or gesture (e.g., 'lean in and whisper the last line', 'big booming god voice, then pause'). Keep it under 12 words.",
   "safety_notes": ["short strings, only if genuinely relevant; empty array otherwise"]
 }
 
@@ -75,6 +76,7 @@ Output:
     { "tone": "high-stakes", "text": "The oracle catches you mid-heist and offers a trade: keep the statue, but carry a warning to the temple you were meant to protect.", "consequence_later": "The temple remembers whether the heroes chose gold or the warning.", "dice_hook": "" }
   ],
   "narration": "The treasury is cool and quiet, gold winking in the torchlight. Just as your fingers close around the statue, a small voice pipes up: 'Ooh, are we going on an adventure?'",
+  "delivery_hint": "hushed heist voice, then a squeaky voice for the statue",
   "safety_notes": []
 }
 </example>
@@ -91,6 +93,7 @@ Output:
     { "tone": "mystery", "text": "The hide still shimmers with faint magic, humming softly when danger is near.", "consequence_later": "The cloak will warn its wearer before the next ambush.", "dice_hook": "Wisdom" }
   ],
   "narration": "You return to the village as champions, the great beast's shimmering hide worn proudly across your shoulders. People gather to marvel at the heroes who did what no one else could.",
+  "delivery_hint": "proud herald voice — let them soak in the cheers",
   "safety_notes": ["Kept the trophy offscreen and adventurous rather than graphic, to stay right for this age."]
 }
 </example>
@@ -108,6 +111,7 @@ Output:
     { "tone": "high-stakes", "text": "Your mercy ripples outward — other captives look to you now, and so do the powers who wanted him gone.", "consequence_later": "A god takes notice of the heroes who chose mercy.", "dice_hook": "" }
   ],
   "narration": "The chains fall away. For a long moment he simply stares at you, as if kindness were a language he'd forgotten. 'Why?' he finally whispers.",
+  "delivery_hint": "slow and quiet — pause before the whispered 'Why?'",
   "safety_notes": []
 }
 </example>

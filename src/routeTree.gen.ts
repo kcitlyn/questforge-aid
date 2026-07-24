@@ -10,17 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiReviseRouteImport } from './routes/api/revise'
+import { Route as ApiCallbackRouteImport } from './routes/api/callback'
 import { Route as ApiGenerateRouteImport } from './routes/api/generate'
+import { Route as ApiReviseRouteImport } from './routes/api/revise'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiReviseRoute = ApiReviseRouteImport.update({
-  id: '/api/revise',
-  path: '/api/revise',
+const ApiCallbackRoute = ApiCallbackRouteImport.update({
+  id: '/api/callback',
+  path: '/api/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGenerateRoute = ApiGenerateRouteImport.update({
@@ -28,33 +29,42 @@ const ApiGenerateRoute = ApiGenerateRouteImport.update({
   path: '/api/generate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiReviseRoute = ApiReviseRouteImport.update({
+  id: '/api/revise',
+  path: '/api/revise',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/callback': typeof ApiCallbackRoute
   '/api/generate': typeof ApiGenerateRoute
   '/api/revise': typeof ApiReviseRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/callback': typeof ApiCallbackRoute
   '/api/generate': typeof ApiGenerateRoute
   '/api/revise': typeof ApiReviseRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/callback': typeof ApiCallbackRoute
   '/api/generate': typeof ApiGenerateRoute
   '/api/revise': typeof ApiReviseRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/generate' | '/api/revise'
+  fullPaths: '/' | '/api/callback' | '/api/generate' | '/api/revise'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/generate' | '/api/revise'
-  id: '__root__' | '/' | '/api/generate' | '/api/revise'
+  to: '/' | '/api/callback' | '/api/generate' | '/api/revise'
+  id: '__root__' | '/' | '/api/callback' | '/api/generate' | '/api/revise'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiCallbackRoute: typeof ApiCallbackRoute
   ApiGenerateRoute: typeof ApiGenerateRoute
   ApiReviseRoute: typeof ApiReviseRoute
 }
@@ -68,11 +78,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/revise': {
-      id: '/api/revise'
-      path: '/api/revise'
-      fullPath: '/api/revise'
-      preLoaderRoute: typeof ApiReviseRouteImport
+    '/api/callback': {
+      id: '/api/callback'
+      path: '/api/callback'
+      fullPath: '/api/callback'
+      preLoaderRoute: typeof ApiCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/generate': {
@@ -82,14 +92,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/revise': {
+      id: '/api/revise'
+      path: '/api/revise'
+      fullPath: '/api/revise'
+      preLoaderRoute: typeof ApiReviseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiCallbackRoute: ApiCallbackRoute,
   ApiGenerateRoute: ApiGenerateRoute,
   ApiReviseRoute: ApiReviseRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

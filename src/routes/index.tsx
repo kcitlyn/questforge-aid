@@ -39,6 +39,7 @@ interface Suggestions {
   clarifying_question: string;
   story_outcomes: StoryOutcome[];
   narration: string;
+  delivery_hint: string;
   safety_notes: string[];
 }
 
@@ -46,6 +47,12 @@ interface LogEntry {
   id: string;
   text: string;
   consequence_later: string;
+}
+
+interface Callback {
+  narration: string;
+  delivery_hint: string;
+  hook: string;
 }
 
 interface SafetyVerdict {
@@ -89,6 +96,8 @@ function coerceSuggestions(obj: unknown): Suggestions | null {
       typeof o.clarifying_question === "string" ? o.clarifying_question : "",
     story_outcomes: outcomes,
     narration: typeof o.narration === "string" ? o.narration : "",
+    delivery_hint:
+      typeof o.delivery_hint === "string" ? o.delivery_hint : "",
     safety_notes: safety,
   };
 }
@@ -139,6 +148,8 @@ function Index() {
   const [revisingBusy, setRevisingBusy] = useState<Set<string>>(new Set());
   const [log, setLog] = useState<LogEntry[]>([]);
   const [copied, setCopied] = useState(false);
+  const [callback, setCallback] = useState<Callback | null>(null);
+  const [callbackBusy, setCallbackBusy] = useState<string | null>(null);
 
   async function runGenerate() {
     if (!situation.trim()) return;
@@ -213,6 +224,48 @@ function Index() {
 
   function removeLogEntry(id: string) {
     setLog((prev) => prev.filter((e) => e.id !== id));
+  }
+
+  // One click on a saved consequence weaves it back into the current scene.
+  async function callBack(entry: LogEntry) {
+    setCallbackBusy(entry.id);
+    setCallback(null);
+    try {
+      const res = await fetch("/api/callback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          entryText: entry.text,
+          consequence: entry.consequence_later,
+          situation,
+          ageRange,
+          setting,
+        }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const { raw } = (await res.json()) as { raw: string };
+      let parsed: Record<string, unknown> | null = null;
+      try {
+        parsed = JSON.parse(raw) as Record<string, unknown>;
+      } catch {
+        parsed = null;
+      }
+      setCallback({
+        narration:
+          parsed && typeof parsed.narration === "string"
+            ? parsed.narration
+            : raw || "",
+        delivery_hint:
+          parsed && typeof parsed.delivery_hint === "string"
+            ? parsed.delivery_hint
+            : "",
+        hook: parsed && typeof parsed.hook === "string" ? parsed.hook : "",
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Callback failed");
+    } finally {
+      setCallbackBusy(null);
+    }
   }
 
   function accept(outcome: StoryOutcome) {
@@ -588,6 +641,11 @@ function Index() {
                 <p className="text-base leading-relaxed italic whitespace-pre-wrap">
                   “{suggestions.narration}”
                 </p>
+                {suggestions.delivery_hint && (
+                  <p className="text-xs text-muted-foreground">
+                    🎭 <span className="italic">({suggestions.delivery_hint})</span>
+                  </p>
+                )}
               </div>
 
               <Card label="Safety notes">
@@ -660,9 +718,48 @@ function Index() {
                       {entry.consequence_later}
                     </div>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => callBack(entry)}
+                    disabled={callbackBusy !== null}
+                    className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2 py-0.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                  >
+                    {callbackBusy === entry.id
+                      ? "Weaving it in…"
+                      : "⏪ Call back now"}
+                  </button>
                 </li>
               ))}
             </ol>
+          )}
+
+          {callback && (
+            <div className="mt-3 rounded-md border border-indigo-300 bg-indigo-50 p-3 space-y-1.5 dark:border-indigo-900 dark:bg-indigo-950">
+              <div className="text-xs font-semibold uppercase tracking-wide text-indigo-900 dark:text-indigo-200">
+                Bring it back
+              </div>
+              <p className="text-sm italic leading-relaxed text-indigo-950 dark:text-indigo-100">
+                “{callback.narration}”
+              </p>
+              {callback.delivery_hint && (
+                <p className="text-xs text-indigo-900/80 dark:text-indigo-200/80">
+                  🎭 ({callback.delivery_hint})
+                </p>
+              )}
+              {callback.hook && (
+                <p className="text-xs text-indigo-900/80 dark:text-indigo-200/80">
+                  <span className="font-medium">Next: </span>
+                  {callback.hook}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => setCallback(null)}
+                className="text-xs text-indigo-900/70 hover:text-indigo-900 dark:text-indigo-200/70 dark:hover:text-indigo-200"
+              >
+                Dismiss
+              </button>
+            </div>
           )}
         </aside>
       </main>
