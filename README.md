@@ -9,12 +9,17 @@ Built for the Quest Craft AI Intern candidate exercise. **Live demo:** _[Lovable
 ## What it does
 
 Describe the moment → get back, in seconds:
-- **2–3 story outcomes** in distinct tones (😄 playful / 🔮 mystery / ⚡ high-stakes),
+- **2–3 story outcomes** in distinct tones (playful / mystery / high-stakes),
   each with a dice hook tied to Quest Craft's Strength/Wisdom/Charisma mechanic
-- **Narration to read aloud**, with a 🎭 delivery hint (voice, pace, pause)
-- **A consequence that matters later** — accept it and it joins the 📜 Session Log,
+- **Narration to read aloud**, with a delivery hint (voice, pace, pause)
+- **A consequence that matters later** — accept it and it joins the Session Log,
   where one click weaves it back into a future scene
 - **A clarifying question** to hand the decision back to the players
+
+The interface uses a hand-drawn SVG icon set (no emoji, no icon library) and
+optional synthesized sound — quiet UI blips and a soft ambient drone, both
+off/muteable — so the console feels like a play tool without ever competing
+with a live table.
 
 Every suggestion has **Use this / Revise / Ignore** — the human GM always decides.
 
